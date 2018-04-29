@@ -184,8 +184,9 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
             Set<TypedOperation> observers = observerMap.getValues(var0.getType());
             if (observers != null) {
               for (TypedOperation m : observers) {
+
                 if (m.getInputTypes().size() > 1) {
-                    continue;
+                  continue;
                 }
 
                 ExecutionOutcome outcome = m.execute(new Object[] {runtimeValue}, null);
