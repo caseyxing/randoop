@@ -351,6 +351,12 @@ public class GenTests extends GenInputsAbstract {
         GenInputsAbstract.getStringSetFromFile(
             GenInputsAbstract.observers, "observer", "//.*", null);
 
+    Set<String> builtInJDKSignatures =
+        GenInputsAbstract.getStringSetFromFile(
+            Paths.get("/home/casey/observers.txt"), "observer", "//.*", null);
+
+    observerSignatures.addAll(builtInJDKSignatures);
+
     MultiMap<Type, TypedOperation> observerMap;
     try {
       observerMap = operationModel.getObservers(observerSignatures);
