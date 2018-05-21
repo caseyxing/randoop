@@ -3,7 +3,6 @@ package randoop.operation;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import randoop.ExceptionalExecution;
@@ -254,7 +253,7 @@ public final class MethodCall extends CallableOperation {
       try {
         m = classType.getRuntimeClass().getMethod(opname, typeArguments);
       } catch (NoSuchMethodException e) {
-        throw new OperationParseException(msg + "\n" + Arrays.toString(classType.getRuntimeClass().getDeclaredMethods()));
+        throw new OperationParseException(msg);
       }
     }
 
