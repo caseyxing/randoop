@@ -347,27 +347,44 @@ public class GenTests extends GenInputsAbstract {
 
     RandoopListenerManager listenerMgr = new RandoopListenerManager();
 
-    Set<String> observerSignatures =
+    Set<String> sideEffectFreeSignatures =
         GenInputsAbstract.getStringSetFromFile(
-            GenInputsAbstract.observers, "observer", "//.*", null);
-
-    Set<String> builtInJDKSignatures =
+            GenInputsAbstract.side_effect_free_methods, "side effect free methods", "//.*", null);
+    
+    Set<String> pureSignatures =
         GenInputsAbstract.getStringSetFromFile(
-            Paths.get("/home/casey/observers.txt"), "observer", "//.*", null);
+            GenInputsAbstract.pure_methods, "pure methods", "//.*", null);
 
-    observerSignatures.addAll(builtInJDKSignatures);
+    Set<String> builtInJDKSideEffectFreeSignatures =
+        GenInputsAbstract.getStringSetFromFile(
+            Paths.get("/home/casey/observer-sfe-no-init.txt"), "observer", "//.*", null);
+    
+    Set<String> builtInJDKPureSignatures =
+        GenInputsAbstract.getStringSetFromFile(
+            Paths.get("/home/casey/observer-pure-no-init.txt"), "observer", "//.*", null);
 
-    MultiMap<Type, TypedOperation> observerMap;
+    sideEffectFreeSignatures.addAll(builtInJDKSideEffectFreeSignatures);
+    pureSignatures.addAll(builtInJDKPureSignatures);
+
+    MultiMap<Type, TypedOperation> sideEffectFreeMap;
+    MultiMap<Type, TypedOperation> pureMap;
     try {
-      observerMap = operationModel.getObservers(observerSignatures);
+      sideEffectFreeMap = operationModel.getObservers(sideEffectFreeSignatures);
     } catch (OperationParseException e) {
-      System.out.printf("Error parsing observers: %s%n", e.getMessage());
+      System.out.printf("Error parsing side effect free methods: %s%n", e.getMessage());
       System.exit(1);
       throw new Error("dead code");
     }
-    Set<TypedOperation> observers = new LinkedHashSet<>();
-    for (Type keyType : observerMap.keySet()) {
-      observers.addAll(observerMap.getValues(keyType));
+    try {
+      pureMap = operationModel.getObservers(pureSignatures);
+    } catch (OperationParseException e) {
+      System.out.printf("Error parsing pure methods: %s%n", e.getMessage());
+      System.exit(1);
+      throw new Error("dead code");
+    }
+    Set<TypedOperation> sideEffectFreeMethods = new LinkedHashSet<>();
+    for (Type keyType : sideEffectFreeMap.keySet()) {
+      sideEffectFreeMethods.addAll(sideEffectFreeMap.getValues(keyType));
     }
 
     /*
@@ -375,7 +392,7 @@ public class GenTests extends GenInputsAbstract {
      */
     AbstractGenerator explorer =
         new ForwardGenerator(
-            operations, observers, new GenInputsAbstract.Limits(), componentMgr, listenerMgr);
+            operations, sideEffectFreeMethods, new GenInputsAbstract.Limits(), componentMgr, listenerMgr);
 
     /* log setup. TODO: handle environment variables like other methods in TestUtils do. */
     operationModel.log();
@@ -389,10 +406,10 @@ public class GenTests extends GenInputsAbstract {
     // System.out.println("isLoggingOn = " + Log.isLoggingOn());
 
     /*
-     * Create the test check generator for the contracts and observers
+     * Create the test check generator for the contracts and pure methods
      */
     ContractSet contracts = operationModel.getContracts();
-    TestCheckGenerator testGen = createTestCheckGenerator(visibility, contracts, observerMap);
+    TestCheckGenerator testGen = createTestCheckGenerator(visibility, contracts, pureMap);
     explorer.setTestCheckGenerator(testGen);
 
     /*
@@ -888,13 +905,13 @@ public class GenTests extends GenInputsAbstract {
    *
    * @param visibility the visibility predicate
    * @param contracts the contract checks
-   * @param observerMap the map from types to observer methods
+   * @param pureMap the map from types to pure methods
    * @return the {@code TestCheckGenerator} that reflects command line arguments
    */
   public static TestCheckGenerator createTestCheckGenerator(
       VisibilityPredicate visibility,
       ContractSet contracts,
-      MultiMap<Type, TypedOperation> observerMap) {
+      MultiMap<Type, TypedOperation> pureMap) {
 
     // Start with checking for invalid exceptions.
     TestCheckGenerator testGen =
@@ -917,7 +934,7 @@ public class GenTests extends GenInputsAbstract {
 
       RegressionCaptureGenerator regressionVisitor =
           new RegressionCaptureGenerator(
-              expectation, observerMap, visibility, !GenInputsAbstract.no_regression_assertions);
+              expectation, pureMap, visibility, !GenInputsAbstract.no_regression_assertions);
 
       testGen = new ExtendGenerator(testGen, regressionVisitor);
     }

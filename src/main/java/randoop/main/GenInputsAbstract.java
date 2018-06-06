@@ -356,9 +356,12 @@ public abstract class GenInputsAbstract extends CommandHandler {
    * tests stronger, and it helps Randoop create smaller tests.
    */
   @OptionGroup("Observer methods")
-  @Option("File containing observer functions")
-  // This file is used to populate RegressionCaptureGenerator.observer_map
-  public static Path observers = null;
+  @Option("File containing side-effect-free functions")
+  public static Path side_effect_free_methods = null;
+  
+  @Option("File containing pure functions")
+  // This file is used to populate RegressionCaptureGenerator.pureMethodMap
+  public static Path pure_methods = null;
 
   /**
    * Maximum number of seconds to spend generating tests. Zero means no limit. If nonzero, Randoop

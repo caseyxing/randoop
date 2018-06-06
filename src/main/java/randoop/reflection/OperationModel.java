@@ -296,7 +296,7 @@ public class OperationModel {
    * Given a set of signatures, returns the operations for them.
    *
    * @param observerSignatures the set of method signatures; typically comes from the {@code
-   *     --observers} command-line option
+   *     --} command-line option
    * @return a map from each class type to the set of observer methods in it
    * @throws OperationParseException if a method signature cannot be parsed
    */

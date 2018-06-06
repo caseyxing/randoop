@@ -47,8 +47,8 @@ public class ForwardGenerator extends AbstractGenerator {
    */
   private final LinkedHashSet<Sequence> allSequences;
 
-  /** The side-effect-free observer methods. */
-  private final Set<TypedOperation> observers;
+  /** The side-effect-free methods. */
+  private final Set<TypedOperation> sideEffectFreeMethods;
 
   /** Sequences that are used in other sequences (and are thus redundant) */
   private Set<Sequence> subsumed_sequences = new LinkedHashSet<>();
@@ -72,23 +72,23 @@ public class ForwardGenerator extends AbstractGenerator {
 
   public ForwardGenerator(
       List<TypedOperation> operations,
-      Set<TypedOperation> observers,
+      Set<TypedOperation> sideEffectFreeMethods,
       GenInputsAbstract.Limits limits,
       ComponentManager componentManager,
       RandoopListenerManager listenerManager) {
-    this(operations, observers, limits, componentManager, null, listenerManager);
+    this(operations, sideEffectFreeMethods, limits, componentManager, null, listenerManager);
   }
 
   public ForwardGenerator(
       List<TypedOperation> operations,
-      Set<TypedOperation> observers,
+      Set<TypedOperation> sideEffectFreeMethods,
       GenInputsAbstract.Limits limits,
       ComponentManager componentManager,
       IStopper stopper,
       RandoopListenerManager listenerManager) {
     super(operations, limits, componentManager, stopper, listenerManager);
 
-    this.observers = observers;
+    this.sideEffectFreeMethods = sideEffectFreeMethods;
     this.allSequences = new LinkedHashSet<>();
     this.instantiator = componentManager.getTypeInstantiator();
 
@@ -219,15 +219,15 @@ public class ForwardGenerator extends AbstractGenerator {
         continue;
       }
 
-      // If it is a call to an observer method, clear the active flag of
+      // If it is a call to a side effect free method, clear the active flag of
       // its receiver. (This method doesn't side effect the receiver or
       // any argument, so Randoop should use some other shorter sequence
       // that produces the value.)
       Sequence stmts = seq.sequence;
       Statement stmt = stmts.statements.get(i);
-      boolean isObserver = stmt.isMethodCall() && observers.contains(stmt.getOperation());
-      Log.logPrintf("isObserver => %s for %s%n", isObserver, stmt);
-      if (isObserver) {
+      boolean isSideEffectFree = stmt.isMethodCall() && sideEffectFreeMethods.contains(stmt.getOperation());
+      Log.logPrintf("isObserver => %s for %s%n", isSideEffectFree, stmt);
+      if (isSideEffectFree) {
         List<Integer> inputVars = stmts.getInputsAsAbsoluteIndices(i);
         for (Integer inputIndex : inputVars) {
           seq.sequence.clearActiveFlag(inputIndex);
@@ -811,7 +811,7 @@ public class ForwardGenerator extends AbstractGenerator {
     return "randoop.generation.ForwardGenerator("
         + ("allSequences.size()=" + allSequences.size())
         + ","
-        + ("observers.size()=" + observers.size())
+        + ("sideEffectFreeMethods.size()=" + sideEffectFreeMethods.size())
         + ","
         + ("subsumed_sequences.size()=" + subsumed_sequences.size())
         + ","

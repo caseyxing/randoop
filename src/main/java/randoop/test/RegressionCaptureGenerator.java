@@ -41,9 +41,9 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
 
   /** The generator for expected exceptions. */
   private ExpectedExceptionCheckGen exceptionExpectation;
-
-  /** The map from a type to the observer operations for the type */
-  private MultiMap<Type, TypedOperation> observerMap;
+  
+  /** The map from a type to the pure (@Pure) operations for the type */
+  private MultiMap<Type, TypedOperation> pureMethodMap;
 
   /** The visibility predicate */
   private final VisibilityPredicate isVisible;
@@ -53,11 +53,11 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
 
   public RegressionCaptureGenerator(
       ExpectedExceptionCheckGen exceptionExpectation,
-      MultiMap<Type, TypedOperation> observerMap,
+      MultiMap<Type, TypedOperation> pureMethodMap,
       VisibilityPredicate isVisible,
       boolean includeAssertions) {
     this.exceptionExpectation = exceptionExpectation;
-    this.observerMap = observerMap;
+    this.pureMethodMap = pureMethodMap;
     this.isVisible = isVisible;
     this.includeAssertions = includeAssertions;
   }
@@ -177,13 +177,13 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
               checks.add(new ObjectCheck(new IsNotNull(), var));
             }
 
-            // Put out any observers that exist for this type
+            // Put out any pure methods that exist for this type
             Variable var0 = sequence.sequence.getVariable(i);
-            Set<TypedOperation> observers = observerMap.getValues(var0.getType());
-            if (observers != null) {
-              for (TypedOperation m : observers) {
+            Set<TypedOperation> pureMethods = pureMethodMap.getValues(var0.getType());
+            if (pureMethods != null) {
+              for (TypedOperation m : pureMethods) {
 
-                // When outputting checks, ignore observers that don't take a single argument.
+                // When outputting checks, ignore pure methods that don't take a single argument.
                 if (m.getInputTypes().size() != 1) {
                   continue;
                 }
@@ -191,7 +191,7 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
                 ExecutionOutcome outcome = m.execute(new Object[] {runtimeValue}, null);
                 if (outcome instanceof ExceptionalExecution) {
                   String msg =
-                      "unexpected error invoking observer "
+                      "unexpected error invoking pure method "
                           + m
                           + " on "
                           + var
@@ -217,7 +217,7 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
                 ObjectContract observerEqValue = new ObserverEqValue(m, value);
                 ObjectCheck observerCheck = new ObjectCheck(observerEqValue, var);
 
-                Log.logPrintf("Adding observer %s%n", observerCheck);
+                Log.logPrintf("Adding pure method %s%n", observerCheck);
 
                 checks.add(observerCheck);
               }

@@ -227,30 +227,53 @@ public class CoveredClassTest {
     ComponentManager componentMgr = new ComponentManager(components);
     operationModel.addClassLiterals(
         componentMgr, GenInputsAbstract.literals_file, GenInputsAbstract.literals_level);
-
-    Set<String> observerSignatures =
+    
+    Set<String> sideEffectFreeSignatures =
         GenInputsAbstract.getStringSetFromFile(
-            GenInputsAbstract.observers, "observer", "//.*", null);
+            GenInputsAbstract.side_effect_free_methods, "side effect free methods", "//.*", null);
+    
+    Set<String> pureSignatures =
+        GenInputsAbstract.getStringSetFromFile(
+            GenInputsAbstract.pure_methods, "pure methods", "//.*", null);
 
-    // Maps each class type to the observer methods in it.
-    MultiMap<Type, TypedOperation> observerMap;
+    Set<String> builtInJDKSideEffectFreeSignatures =
+        GenInputsAbstract.getStringSetFromFile(
+            Paths.get("/home/casey/observer-sfe-no-init.txt"), "observer", "//.*", null);
+    
+    Set<String> builtInJDKPureSignatures =
+        GenInputsAbstract.getStringSetFromFile(
+            Paths.get("/home/casey/observer-pure-no-init.txt"), "observer", "//.*", null);
+
+    sideEffectFreeSignatures.addAll(builtInJDKSideEffectFreeSignatures);
+    pureSignatures.addAll(builtInJDKPureSignatures);
+
+    MultiMap<Type, TypedOperation> sideEffectFreeMap;
+    MultiMap<Type, TypedOperation> pureMap;
     try {
-      observerMap = operationModel.getObservers(observerSignatures);
+      sideEffectFreeMap = operationModel.getObservers(sideEffectFreeSignatures);
     } catch (OperationParseException e) {
-      System.out.printf("Parse error while reading observers: %s%n", e);
+      System.out.printf("Error parsing side effect free methods: %s%n", e.getMessage());
       System.exit(1);
       throw new Error("dead code");
     }
-    assert observerMap != null;
-    Set<TypedOperation> observers = new LinkedHashSet<>();
-    for (Type keyType : observerMap.keySet()) {
-      observers.addAll(observerMap.getValues(keyType));
+    try {
+      pureMap = operationModel.getObservers(pureSignatures);
+    } catch (OperationParseException e) {
+      System.out.printf("Error parsing pure methods: %s%n", e.getMessage());
+      System.exit(1);
+      throw new Error("dead code");
+    }
+    
+    assert sideEffectFreeMap != null;
+    Set<TypedOperation> sideEffectFreeMethods = new LinkedHashSet<>();
+    for (Type keyType : sideEffectFreeMap.keySet()) {
+      sideEffectFreeMethods.addAll(sideEffectFreeMap.getValues(keyType));
     }
 
     RandoopListenerManager listenerMgr = new RandoopListenerManager();
     ForwardGenerator testGenerator =
         new ForwardGenerator(
-            model, observers, new GenInputsAbstract.Limits(), componentMgr, listenerMgr);
+            model, sideEffectFreeMethods, new GenInputsAbstract.Limits(), componentMgr, listenerMgr);
     GenTests genTests = new GenTests();
 
     TypedOperation objectConstructor;
@@ -272,7 +295,7 @@ public class CoveredClassTest {
 
     ContractSet contracts = operationModel.getContracts();
     TestCheckGenerator checkGenerator =
-        GenTests.createTestCheckGenerator(visibility, contracts, observerMap);
+        GenTests.createTestCheckGenerator(visibility, contracts, pureMap);
     testGenerator.setTestCheckGenerator(checkGenerator);
     testGenerator.setExecutionVisitor(
         new CoveredClassVisitor(operationModel.getCoveredClassesGoal()));
