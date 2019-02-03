@@ -1,3 +1,33 @@
+Version 4.1.0, released September 5, 2018
+
+Randoop requires Java 8; it no longer runs on a Java 7 JVM.
+
+New technique, "Bloodhound", for randomly selecting methods to test.  It
+weights each method under test based on the method's branch coverage and
+the number of times the method is chosen for a new sequence.  Enable it via
+--method-selection=BLOODHOUND .
+
+Command-line argument changes:
+ * renamed --small-tests to --input-selection=small-tests
+
+
+Version 4.0.4, released May 23, 2018
+
+Command-line argument changes:
+ * the --specifications command-line argument can now be a .zip file
+ * renamed --print-file-system-state to --print-erroneous-file
+
+Randoop's replacecalls agent can now replace constructors.
+
+More methods are now permitted as observers.
+
+Improved diagnostics when user supplies incorrect input to Randoop.
+
+Bug fixes.
+
+Improvements to documentation.
+
+
 Version 4.0.3, released April 10, 2018
 
 Fixed a bug caused by order of execution of variable initializers.

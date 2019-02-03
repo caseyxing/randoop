@@ -7,12 +7,12 @@ import java.util.Objects;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 import org.plumelib.util.UtilPlume;
-import randoop.BugInRandoopException;
 import randoop.Globals;
 import randoop.compile.SequenceCompiler;
 import randoop.compile.SequenceCompilerException;
 import randoop.contract.ObjectContract;
 import randoop.main.GenInputsAbstract;
+import randoop.main.RandoopBug;
 import randoop.output.NameGenerator;
 import randoop.reflection.RawSignature;
 
@@ -212,13 +212,13 @@ public class ExecutableBooleanExpression {
     try {
       expressionClass = compiler.loadClass(packageName, classname);
     } catch (ClassNotFoundException e) {
-      throw new BugInRandoopException("Failed to load expression class", e);
+      throw new RandoopBug("Failed to load expression class", e);
     }
 
     try {
       return expressionClass.getDeclaredMethod(signature.getName(), signature.getParameterTypes());
     } catch (NoSuchMethodException e) {
-      throw new BugInRandoopException("Condition class does not contain expression method", e);
+      throw new RandoopBug("Condition class does not contain expression method", e);
     }
   }
 
@@ -263,18 +263,20 @@ public class ExecutableBooleanExpression {
    */
   private static String getCompilerErrorMessage(
       List<Diagnostic<? extends JavaFileObject>> diagnostics, String classText) {
-    StringBuilder msg = new StringBuilder("Condition method did not compile: ");
+    StringBuilder msg = new StringBuilder("Condition method did not compile:");
+    msg.append(Globals.lineSep);
     for (Diagnostic<? extends JavaFileObject> diag : diagnostics) {
       if (diag != null) {
         String diagMessage = diag.getMessage(null);
         if (diagMessage.contains("unreported exception")) {
-          msg.append(
+          diagMessage =
               String.format(
                   "expression threw exception %s",
-                  diagMessage.substring(0, diagMessage.indexOf(';'))));
-        } else {
-          msg.append(diagMessage);
+                  diagMessage.substring(0, diagMessage.indexOf(';')));
         }
+        msg.append(
+            String.format(
+                "%d:%d: %s%n", diag.getLineNumber(), diag.getColumnNumber(), diagMessage));
       }
     }
     msg.append(String.format("%nClass Declaration:%n%s", classText));

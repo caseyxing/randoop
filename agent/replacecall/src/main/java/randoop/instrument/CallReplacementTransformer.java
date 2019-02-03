@@ -37,7 +37,7 @@ import org.plumelib.bcelutil.SimpleLog;
 public class CallReplacementTransformer extends InstructionListUtils
     implements ClassFileTransformer {
 
-  /** Debug information about which classes are transformed and why */
+  /** Debug information about which classes are transformed and why. */
   private static SimpleLog debug_transform =
       new SimpleLog(
           // ReplaceCallAgent.debugPath + File.separator + "replacecall-transform-log.txt",
@@ -134,17 +134,22 @@ public class CallReplacementTransformer extends InstructionListUtils
             "transform: EXIT class %s not transformed (nothing to replace)%n", className);
         return null;
       }
+    } catch (ThreadDeath e) {
+      // Probably the thread ran out of time while transforming a class
+      throw e;
     } catch (IllegalClassFormatException e) {
       debug_transform.log(
           "transform: EXIT transform of %s resulted in exception %s%n", className, e);
       System.out.format(
-          "Unexpected exception %s (%s) in class transform of %s%n", e, e.getCause(), className);
+          "Unexpected exception %s (cause=%s) in CallReplacementTransformer.transform(%s)%n",
+          e, e.getCause(), className);
       throw e;
     } catch (Throwable e) {
       debug_transform.log(
           "transform: EXIT transform of %s resulted in exception %s%n", className, e);
       System.out.format(
-          "Unexpected exception %s (%s) in class transform of %s%n", e, e.getCause(), className);
+          "Unexpected exception %s (%s) in CallReplacementTransformer.transform(%s)%n",
+          e, e.getCause(), className);
       e.printStackTrace();
       return null;
     }
@@ -219,6 +224,7 @@ public class CallReplacementTransformer extends InstructionListUtils
     // Have we modified this class?
     boolean transformed = false;
     InstructionFactory ifact = new InstructionFactory(cg);
+    boolean save_debug = debug_instrument.enabled;
 
     try {
       // Loop through each method in the class
@@ -233,13 +239,17 @@ public class CallReplacementTransformer extends InstructionListUtils
 
           debug_transform.log("%ntransform method: ENTER %s%n", mg.getName());
 
+          // Skip method if it's synthetic. (default constructors and <clinit> are not synthetic)
+          if ((Const.ACC_SYNTHETIC & mg.getAccessFlags()) > 0) {
+            continue;
+          }
+
           // Get the instruction list and skip methods with no instructions
           InstructionList il = mg.getInstructionList();
           if (il == null) {
             continue;
           }
 
-          boolean save_debug = debug_instrument.enabled;
           debug_instrument.enabled = false;
 
           // Prepare method for instrumentation.
@@ -291,6 +301,7 @@ public class CallReplacementTransformer extends InstructionListUtils
     } catch (Exception e) {
       System.out.printf("Unexpected exception encountered: %s", e);
       e.printStackTrace();
+      debug_instrument.enabled = save_debug;
     }
 
     return transformed;

@@ -353,7 +353,7 @@ public class RandoopSystemTest {
     options.setOption("generated_limit", "5000"); // runs out of memory on Travis if 6000
     options.setOption("null-ratio", "0.3");
     options.setOption("alias-ratio", "0.3");
-    options.setFlag("small-tests");
+    options.setOption("input-selection", "small-tests");
     options.setFlag("clear=2000");
     options.addClassList("resources/systemTest/jdk_classlist.txt");
 
@@ -751,7 +751,10 @@ public class RandoopSystemTest {
         is(equalTo(0)));
   }
 
-  /** Runs with --side-effect-free-methods flag and should have no side effect free methods called for side effect */
+  /**
+   * Runs with --side-effect-free-methods flag and should have no side effect free methods called
+   * for side effect
+   */
   @Test
   public void runSideEffectObserversTest() {
     String directoryName = "side-effect-observers-test";
@@ -851,7 +854,7 @@ public class RandoopSystemTest {
     generateAndTest(testEnvironment, options, expectedRegressionTests, expectedErrorTests);
   }
 
-  /** Tests that Randoop deals properly with exceptions */
+  /** Tests that Randoop deals properly with exceptions. */
   @Test
   public void runExceptionTest() {
     SystemTestEnvironment testEnvironment =
@@ -918,7 +921,7 @@ public class RandoopSystemTest {
     options.addTestClass("collectiongen.InputClass");
     options.addTestClass("collectiongen.Day");
     options.addTestClass("collectiongen.AnInputClass");
-    options.setFlag("small-tests");
+    options.setOption("input-selection", "small-tests");
     options.setOption("generated_limit", "500");
     options.setOption("omitmethods", "hashCode\\(\\)");
 
@@ -949,7 +952,7 @@ public class RandoopSystemTest {
     options.setRegressionBasename("EnumCheckRegression");
     options.setErrorBasename("EnumCheckError");
     options.addTestClass("examples.Option");
-    options.setFlag("small-tests");
+    options.setOption("input-selection", "small-tests");
     options.setOption("generated_limit", "20");
 
     ExpectedTests expectedRegressionTests = ExpectedTests.SOME;
@@ -1359,7 +1362,7 @@ public class RandoopSystemTest {
   }
 
   /**
-   * Expecting something like
+   * Expecting something like.
    *
    * <pre>
    * generation.Dim6Matrix dim6Matrix = new generation.Dim6Matrix();

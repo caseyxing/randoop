@@ -1,6 +1,5 @@
 package randoop.main;
 
-import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -8,11 +7,14 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.signature.qual.ClassGetName;
 import org.plumelib.options.Option;
 import org.plumelib.options.OptionGroup;
 import org.plumelib.options.Options;
 import org.plumelib.options.Unpublicized;
 import org.plumelib.util.EntryReader;
+import org.plumelib.util.FileWriterWithName;
 import randoop.Globals;
 import randoop.util.Randomness;
 import randoop.util.ReflectionExecutor;
@@ -228,9 +230,11 @@ public abstract class GenInputsAbstract extends CommandHandler {
   /**
    * If true, Randoop outputs both original error-revealing tests and a minimized version. Setting
    * this option may cause long Randoop run times if Randoop outputs and minimizes more than about
-   * 100 error-revealing tests; consider using <a href="#option:stop-on-error-test"><code>
+   * 100 error-revealing tests; consider using <a
+   * href="https://randoop.github.io/randoop/manual/index.html#option:stop-on-error-test"><code>
    * --stop-on-error-test=true</code></a>. Also see the <a
-   * href="#optiongroup:Test-case-minimization-options">test case minimization options</a>.
+   * href="https://randoop.github.io/randoop/manual/index.html#optiongroup:Test-case-minimization-options">test
+   * case minimization options</a>.
    */
   // Omit this to keep the documentation short:
   // Regardless of this option's setting, minimization is enabled when
@@ -358,7 +362,7 @@ public abstract class GenInputsAbstract extends CommandHandler {
   @OptionGroup("Observer methods")
   @Option("File containing side-effect-free functions")
   public static Path side_effect_free_methods = null;
-  
+
   @Option("File containing pure functions")
   // This file is used to populate RegressionCaptureGenerator.pureMethodMap
   public static Path pure_methods = null;
@@ -508,9 +512,48 @@ public abstract class GenInputsAbstract extends CommandHandler {
     ALL
   }
 
+  /**
+   * Randoop generates new tests by choosing from a set of methods under test. This controls how the
+   * next method is chosen, from among all methods under test.
+   */
+  @Option("How to choose the next method to test")
+  public static MethodSelectionMode method_selection = MethodSelectionMode.UNIFORM;
+
+  /** The possible values of the method_selection command-line argument. */
+  public enum MethodSelectionMode {
+    /** Select methods randomly with uniform probability. */
+    UNIFORM,
+    /**
+     * The "Bloodhound" technique from the GRT paper prioritizes methods with lower branch coverage.
+     */
+    BLOODHOUND
+  }
+
+  /** Print to standard out, method weights and method uncovered ratios. */
+  @Unpublicized
+  @Option("Output Bloodhound-related information such as method weights and coverage ratios")
+  public static boolean bloodhound_logging = false;
+
+  /**
+   * Bloodhound can update coverage information at a regular interval that is either based on time
+   * or on the number of successful invocations.
+   */
+  @Unpublicized
+  @Option("Specify how Bloodhound decides when to update coverage information")
+  public static BloodhoundCoverageUpdateMode bloodhound_update_mode =
+      BloodhoundCoverageUpdateMode.TIME;
+
+  /** The possible modes for updating the coverage information that is used by Bloodhound. */
+  public enum BloodhoundCoverageUpdateMode {
+    /** Update coverage information at some regular interval of time. */
+    TIME,
+    /** Update coverage information after some number of successful invocations. */
+    INVOCATIONS
+  }
+
   // Implementation note: when checking whether a String S exceeds the given
   // maxlength, we test if StringEscapeUtils.escapeJava(S), because this is
-  // the length of the string that will atually be printed out as code.
+  // the length of the string that will actually be printed out as code.
   /**
    * Maximum length of strings in generated tests, including in assertions. Strings longer than 65KB
    * (or about 10,000 characters) may be rejected by the Java compiler, according to the Java
@@ -532,15 +575,19 @@ public abstract class GenInputsAbstract extends CommandHandler {
   @Option("Reuse values with the given frequency")
   public static double alias_ratio = 0;
 
+  public enum InputSelectionMode {
+    /** Favor shorter sequences. This makes Randoop produce smaller JUnit tests. */
+    SMALL_TESTS,
+    /** Select sequences uniformly at random. */
+    UNIFORM
+  }
+
   /**
-   * Favor shorter sequences when assembling new sequences out of old ones.
-   *
-   * <p>Randoop generates new tests by combining old previously-generated tests. If this option is
-   * given, tests with fewer calls are given greater weight during its random selection. This has
-   * the overall effect of producing smaller JUnit tests.
+   * Randoop generates new tests by combining old previously-generated tests. This controls how the
+   * old tests are chosen, from among all existing tests.
    */
-  @Option("Favor shorter tests during generation")
-  public static boolean small_tests = false;
+  @Option("How to choose tests for Randoop to extend")
+  public static InputSelectionMode input_selection = InputSelectionMode.UNIFORM;
 
   /**
    * Clear the component set each time it contains the given number of inputs.
@@ -553,7 +600,7 @@ public abstract class GenInputsAbstract extends CommandHandler {
   public static int clear = 100000000;
 
   ///////////////////////////////////////////////////////////////////
-  /** Maximum number of tests to write to each JUnit file */
+  /** Maximum number of tests to write to each JUnit file. */
   @OptionGroup("Outputting the JUnit tests")
   @Option("Maximum number of tests to write to each JUnit file")
   public static int testsperfile = 500;
@@ -619,7 +666,7 @@ public abstract class GenInputsAbstract extends CommandHandler {
   @Option("Filename for code to include in AfterClass-annotated method of test classes")
   public static String junit_after_all = null;
 
-  /** Name of the directory to which JUnit files should be written */
+  /** Name of the directory to which JUnit files should be written. */
   @Option("Name of the directory to which JUnit files should be written")
   public static String junit_output_dir = null;
 
@@ -650,7 +697,8 @@ public abstract class GenInputsAbstract extends CommandHandler {
   @Option("-D Specify system properties to be set (similar to java -Dx=y)")
   public static List<String> system_props = new ArrayList<>();
 
-  @Option("Capture all output to stdout and stderr")
+  @Unpublicized
+  @Option("Store all output to stdout and stderr in the ExecutionOutcome.")
   public static boolean capture_output = false;
 
   /**
@@ -698,18 +746,18 @@ public abstract class GenInputsAbstract extends CommandHandler {
    * logs slows down Randoop.
    */
   @Option("<filename> Log lots of information to this file")
-  public static FileWriter log = null;
+  public static FileWriterWithName log = null;
 
   /**
    * A file to which to log selections; helps find sources of non-determinism. If not specified, no
    * logging is done.
    */
   @Option("<filename> Log each random selection to this file")
-  public static FileWriter selection_log = null;
+  public static FileWriterWithName selection_log = null;
 
   /** A file to which to log the operation usage history. */
   @Option("<filename> Log operation usage counts to this file")
-  public static FileWriter operation_history_log = null;
+  public static FileWriterWithName operation_history_log = null;
 
   @Option("Display source if a generated test contains a compilation error.")
   public static boolean print_erroneous_file = false;
@@ -726,7 +774,7 @@ public abstract class GenInputsAbstract extends CommandHandler {
   /** Install the given runtime visitor. See class randoop.ExecutionVisitor. */
   @OptionGroup(value = "Advanced extension points")
   @Option("Install the given runtime visitor")
-  public static List<String> visitor = new ArrayList<>();
+  public static List<@ClassGetName String> visitor = new ArrayList<>();
 
   ///////////////////////////////////////////////////////////////////
   // This is only here to keep the ICSE07ContainersTest working
@@ -778,6 +826,13 @@ public abstract class GenInputsAbstract extends CommandHandler {
       }
     }
 
+    if (deterministic
+        && method_selection == MethodSelectionMode.BLOODHOUND
+        && bloodhound_update_mode == BloodhoundCoverageUpdateMode.TIME) {
+      throw new RandoopUsageError(
+          "Invalid parameter combination: --deterministic with --bloodhound-update-mode=time");
+    }
+
     if (ReflectionExecutor.call_timeout != ReflectionExecutor.CALL_TIMEOUT_DEFAULT
         && !ReflectionExecutor.usethreads) {
       throw new RandoopUsageError(
@@ -802,23 +857,42 @@ public abstract class GenInputsAbstract extends CommandHandler {
     }
   }
 
-  public static Set<String> getClassnamesFromArgs() {
-    Set<String> classnames = getStringSetFromFile(classlist, "tested classes");
+  /**
+   * Read names of classes under test, as provided with the --classlist command-line argument.
+   *
+   * @return the classes provided via the --classlist command-line argument
+   */
+  @SuppressWarnings("signature") // TODO: reading from file; no guarantee strings are @ClassGetName
+  public static Set<@ClassGetName String> getClassnamesFromArgs() {
+    Set<@ClassGetName String> classnames = getStringSetFromFile(classlist, "tested classes");
     classnames.addAll(testclass);
     return classnames;
   }
 
+  /**
+   * Returns a set consisting of the lines of the file, except those starting with "#". Returns
+   * empty set if listFile is null.
+   *
+   * @param listFile the file containing the strings
+   * @param fileDescription string used in error messages
+   * @return the lines in the file, or null if listFile is null
+   */
   public static Set<String> getStringSetFromFile(Path listFile, String fileDescription) {
     return getStringSetFromFile(listFile, fileDescription, "^#.*", null);
   }
 
-  /** Returns empty set if listFile is null. */
+  /**
+   * Returns a set consisting of the lines of the file. Returns empty set if listFile is null.
+   *
+   * @param listFile the file containing the strings
+   * @param fileDescription string used in error messages
+   * @param commentRegex indicates which lines are comments that should be ignored
+   * @param includeRegex if this string appears in the file, then another file is recursively read
+   * @return the strings in the file, or null if listFile is null
+   */
   @SuppressWarnings("SameParameterValue")
   public static Set<String> getStringSetFromFile(
-      /*@Nullable*/ Path listFile,
-      String fileDescription,
-      String commentRegex,
-      String includeRegex) {
+      @Nullable Path listFile, String fileDescription, String commentRegex, String includeRegex) {
     Set<String> elementSet = new LinkedHashSet<>();
     if (listFile != null) {
       try (EntryReader er = new EntryReader(listFile.toFile(), commentRegex, includeRegex)) {
@@ -831,7 +905,7 @@ public abstract class GenInputsAbstract extends CommandHandler {
       } catch (IOException e) {
         String message =
             String.format(
-                "Error while reading %s file %s: %s%n", listFile, fileDescription, e.getMessage());
+                "Error while reading %s file %s: %s%n", fileDescription, listFile, e.getMessage());
         throw new RandoopUsageError(message, e);
       }
     }

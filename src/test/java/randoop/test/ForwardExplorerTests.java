@@ -8,10 +8,10 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import randoop.BugInRandoopException;
 import randoop.generation.ComponentManager;
 import randoop.generation.ForwardGenerator;
 import randoop.generation.SeedSequences;
@@ -19,6 +19,7 @@ import randoop.generation.TestUtils;
 import randoop.main.GenInputsAbstract;
 import randoop.main.GenTests;
 import randoop.main.OptionsCache;
+import randoop.main.RandoopBug;
 import randoop.operation.ConstructorCall;
 import randoop.operation.TypedClassOperation;
 import randoop.operation.TypedOperation;
@@ -41,7 +42,6 @@ import randoop.types.Type;
 import randoop.types.TypeTuple;
 import randoop.util.MultiMap;
 import randoop.util.ReflectionExecutor;
-import randoop.util.predicate.Predicate;
 
 public class ForwardExplorerTests {
 
@@ -225,12 +225,12 @@ public class ForwardExplorerTests {
     try {
       objectConstructor = new ConstructorCall(Object.class.getConstructor());
     } catch (Exception e) {
-      throw new BugInRandoopException(e); // Should never reach here!
+      throw new RandoopBug(e); // Should never reach here!
     }
     TypedOperation op =
         new TypedClassOperation(
             objectConstructor, JavaTypes.OBJECT_TYPE, new TypeTuple(), JavaTypes.OBJECT_TYPE);
-    sequences.add((new Sequence().extend(op, new ArrayList<Variable>())));
+    sequences.add(new Sequence().extend(op, new ArrayList<Variable>()));
     return new GenTests()
         .createTestOutputPredicate(
             sequences, new LinkedHashSet<Class<?>>(), require_classname_in_test);

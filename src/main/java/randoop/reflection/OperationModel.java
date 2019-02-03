@@ -19,7 +19,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
-import randoop.BugInRandoopException;
+import org.checkerframework.checker.nullness.qual.Nullable;
+import org.checkerframework.checker.signature.qual.ClassGetName;
 import randoop.Globals;
 import randoop.condition.SpecificationCollection;
 import randoop.contract.CompareToAntiSymmetric;
@@ -38,6 +39,7 @@ import randoop.contract.SizeToArrayLength;
 import randoop.generation.ComponentManager;
 import randoop.main.ClassNameErrorHandler;
 import randoop.main.GenInputsAbstract;
+import randoop.main.RandoopBug;
 import randoop.operation.MethodCall;
 import randoop.operation.OperationParseException;
 import randoop.operation.TypedClassOperation;
@@ -83,10 +85,10 @@ public class OperationModel {
   /** Set of object contracts used to generate tests. */
   private ContractSet contracts;
 
-  /** Set of concrete operations extracted from classes */
+  /** Set of concrete operations extracted from classes. */
   private final Set<TypedOperation> operations;
 
-  /** For debugging only */
+  /** For debugging only. */
   private List<Pattern> omitMethods;
 
   /** Create an empty model of test context. */
@@ -128,7 +130,7 @@ public class OperationModel {
    * @param methodSignatures the signatures of methods to be added to the model
    * @param errorHandler the handler for bad file name errors
    * @param literalsFileList the list of literals file names
-   * @param operationCollection the collection of operation specifications
+   * @param operationSpecifications the collection of operation specifications
    * @return the {@link OperationModel} constructed with the given arguments
    * @throws SignatureParseException if a method signature is ill-formed
    * @throws NoSuchMethodException if an attempt is made to load a non-existent method
@@ -137,12 +139,12 @@ public class OperationModel {
       VisibilityPredicate visibility,
       ReflectionPredicate reflectionPredicate,
       List<Pattern> omitMethods,
-      Set<String> classnames,
-      Set<String> coveredClassesGoalNames,
+      Set<@ClassGetName String> classnames,
+      Set<@ClassGetName String> coveredClassesGoalNames,
       Set<String> methodSignatures,
       ClassNameErrorHandler errorHandler,
       List<String> literalsFileList,
-      SpecificationCollection operationCollection)
+      SpecificationCollection operationSpecifications)
       throws SignatureParseException, NoSuchMethodException {
 
     OperationModel model = new OperationModel();
@@ -161,7 +163,7 @@ public class OperationModel {
     OmitMethodsPredicate omitPredicate = new OmitMethodsPredicate(omitMethods);
 
     model.addOperationsFromClasses(
-        model.classTypes, visibility, reflectionPredicate, omitPredicate, operationCollection);
+        model.classTypes, visibility, reflectionPredicate, omitPredicate, operationSpecifications);
     model.addOperationsUsingSignatures(
         methodSignatures, visibility, reflectionPredicate, omitPredicate);
     model.addObjectConstructor();
@@ -189,8 +191,8 @@ public class OperationModel {
   static OperationModel createModel(
       VisibilityPredicate visibility,
       ReflectionPredicate reflectionPredicate,
-      Set<String> classnames,
-      Set<String> coveredClassnames,
+      Set<@ClassGetName String> classnames,
+      Set<@ClassGetName String> coveredClassnames,
       Set<String> methodSignatures,
       ClassNameErrorHandler errorHandler,
       List<String> literalsFileList)
@@ -229,8 +231,8 @@ public class OperationModel {
       VisibilityPredicate visibility,
       ReflectionPredicate reflectionPredicate,
       List<Pattern> omitMethods,
-      Set<String> classnames,
-      Set<String> coveredClassnames,
+      Set<@ClassGetName String> classnames,
+      Set<@ClassGetName String> coveredClassnames,
       Set<String> methodSignatures,
       ClassNameErrorHandler errorHandler,
       List<String> literalsFileList)
@@ -295,8 +297,8 @@ public class OperationModel {
   /**
    * Given a set of signatures, returns the operations for them.
    *
-   * @param observerSignatures the set of method signatures; typically comes from the {@code
-   *     --} command-line option
+   * @param observerSignatures the set of method signatures; typically comes from the {@code --}
+   *     command-line option
    * @return a map from each class type to the set of observer methods in it
    * @throws OperationParseException if a method signature cannot be parsed
    */
@@ -392,7 +394,7 @@ public class OperationModel {
         out.flush();
       }
     } catch (IOException e) {
-      throw new BugInRandoopException("Error while logging operations", e);
+      throw new RandoopBug("Error while logging operations", e);
     }
   }
 
@@ -452,8 +454,8 @@ public class OperationModel {
   private void addClassTypes(
       VisibilityPredicate visibility,
       ReflectionPredicate reflectionPredicate,
-      Set<String> classnames,
-      Set<String> coveredClassesGoalNames,
+      Set<@ClassGetName String> classnames,
+      Set<@ClassGetName String> coveredClassesGoalNames,
       ClassNameErrorHandler errorHandler,
       List<String> literalsFileList) {
     ReflectionManager mgr = new ReflectionManager(visibility);
@@ -516,8 +518,16 @@ public class OperationModel {
     }
   }
 
-  /* May return null if errorHandler just warns on bad names. */
-  private static Class<?> getClass(String classname, ClassNameErrorHandler errorHandler) {
+  /**
+   * Returns the class whose name is {@code classname}. A wrapper around Class.forName.
+   *
+   * @param classname the name of a class or primitive type
+   * @param errorHandler is called if no such class exists
+   * @return the Class whose name is {@code classname}. May return null if {@code errorHandler} just
+   *     warns on bad names.
+   */
+  private static @Nullable Class<?> getClass(
+      @ClassGetName String classname, ClassNameErrorHandler errorHandler) {
     try {
       return TypeNames.getTypeForName(classname);
     } catch (ClassNotFoundException e) {
@@ -595,7 +605,7 @@ public class OperationModel {
     try {
       objectConstructor = Object.class.getConstructor();
     } catch (NoSuchMethodException e) {
-      throw new BugInRandoopException("unable to load java.lang.Object() constructor", e);
+      throw new RandoopBug("unable to load java.lang.Object() constructor", e);
     }
     TypedClassOperation operation = TypedOperation.forConstructor(objectConstructor);
     classTypes.add(operation.getDeclaringType());

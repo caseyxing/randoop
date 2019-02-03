@@ -24,14 +24,14 @@ import org.plumelib.util.EntryReader;
 
 /**
  * Provides the methods {@link #readReplacements(Reader, String)} and {@link
- * #readReplacements(File)} that read a replacecall agent replacement file and populate the method
+ * #readReplacements(Path)} that read a replacecall agent replacement file and populate the method
  * replacement map used by the agent. See the <a
  * href="https://randoop.github.io/randoop/manual/index.html#replacecall">replacecall user
  * documentation</a> for the file format.
  */
 public class ReplacementFileReader {
 
-  /** Regex for Java identifiers */
+  /** Regex for Java identifiers. */
   public static final String ID_STRING = "\\p{javaJavaIdentifierStart}\\p{javaJavaIdentifierPart}*";
 
   /**

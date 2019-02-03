@@ -1,8 +1,6 @@
 package randoop.main;
 
 import static randoop.reflection.VisibilityPredicate.IS_PUBLIC;
-import static randoop.test.predicate.ExceptionBehaviorPredicate.IS_ERROR;
-import static randoop.test.predicate.ExceptionBehaviorPredicate.IS_INVALID;
 
 import com.github.javaparser.ParseException;
 import com.github.javaparser.ast.CompilationUnit;
@@ -26,13 +24,15 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.StringJoiner;
 import java.util.StringTokenizer;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
+import org.checkerframework.checker.signature.qual.ClassGetName;
 import org.plumelib.options.Options;
 import org.plumelib.options.Options.ArgException;
 import org.plumelib.util.EntryReader;
 import org.plumelib.util.UtilPlume;
-import randoop.BugInRandoopException;
 import randoop.ExecutionVisitor;
 import randoop.Globals;
 import randoop.MethodReplacements;
@@ -58,7 +58,6 @@ import randoop.output.MinimizerWriter;
 import randoop.output.RandoopOutputException;
 import randoop.reflection.DefaultReflectionPredicate;
 import randoop.reflection.OperationModel;
-import randoop.reflection.PackageVisibilityPredicate;
 import randoop.reflection.RandoopInstantiationError;
 import randoop.reflection.RawSignature;
 import randoop.reflection.ReflectionPredicate;
@@ -81,9 +80,7 @@ import randoop.test.RegressionCaptureGenerator;
 import randoop.test.RegressionTestPredicate;
 import randoop.test.TestCheckGenerator;
 import randoop.test.ValidityCheckingGenerator;
-import randoop.test.predicate.AlwaysFalseExceptionPredicate;
-import randoop.test.predicate.ExceptionBehaviorPredicate;
-import randoop.test.predicate.ExceptionPredicate;
+import randoop.types.ClassOrInterfaceType;
 import randoop.types.Type;
 import randoop.util.CollectionsExt;
 import randoop.util.Log;
@@ -92,8 +89,8 @@ import randoop.util.Randomness;
 import randoop.util.RandoopLoggingError;
 import randoop.util.ReflectionExecutor;
 import randoop.util.predicate.AlwaysFalse;
-import randoop.util.predicate.Predicate;
 
+/** Test generation. */
 public class GenTests extends GenInputsAbstract {
 
   // If this is changed, also change RandoopSystemTest.NO_OPERATIONS_TO_TEST
@@ -158,7 +155,7 @@ public class GenTests extends GenInputsAbstract {
           ForwardGenerator.class,
           AbstractGenerator.class);
 
-  /** The count of sequences that failed to compile */
+  /** The count of sequences that failed to compile. */
   private int sequenceCompileFailureCount = 0;
 
   public GenTests() {
@@ -209,10 +206,11 @@ public class GenTests extends GenInputsAbstract {
      * Setup model of classes under test
      */
     // Get names of classes under test
-    Set<String> classnames = GenInputsAbstract.getClassnamesFromArgs();
+    Set<@ClassGetName String> classnames = GenInputsAbstract.getClassnamesFromArgs();
 
     // Get names of classes that must be covered by output tests
-    Set<String> coveredClassnames =
+    @SuppressWarnings("signature") // TOOD: read from file, no guarantee strings are @ClassGetName
+    Set<@ClassGetName String> coveredClassnames =
         GenInputsAbstract.getStringSetFromFile(require_covered_classes, "coverage class names");
 
     // Get names of fields to be omitted
@@ -231,7 +229,8 @@ public class GenTests extends GenInputsAbstract {
                 + " since --only-test-public-members is set");
       }
     } else {
-      visibility = new PackageVisibilityPredicate(GenInputsAbstract.junit_package_name);
+      visibility =
+          new VisibilityPredicate.PackageVisibilityPredicate(GenInputsAbstract.junit_package_name);
     }
 
     omitmethods.addAll(readOmitMethods(omitmethods_file));
@@ -317,6 +316,7 @@ public class GenTests extends GenInputsAbstract {
     assert operationModel != null;
 
     List<TypedOperation> operations = operationModel.getOperations();
+    Set<ClassOrInterfaceType> classesUnderTest = operationModel.getClassTypes();
 
     /*
      * Stop if there is only 1 operation. This will be Object().
@@ -350,7 +350,7 @@ public class GenTests extends GenInputsAbstract {
     Set<String> sideEffectFreeSignatures =
         GenInputsAbstract.getStringSetFromFile(
             GenInputsAbstract.side_effect_free_methods, "side effect free methods", "//.*", null);
-    
+
     Set<String> pureSignatures =
         GenInputsAbstract.getStringSetFromFile(
             GenInputsAbstract.pure_methods, "pure methods", "//.*", null);
@@ -358,7 +358,7 @@ public class GenTests extends GenInputsAbstract {
     Set<String> builtInJDKSideEffectFreeSignatures =
         GenInputsAbstract.getStringSetFromFile(
             Paths.get("/home/casey/observer-sfe-no-init.txt"), "observer", "//.*", null);
-    
+
     Set<String> builtInJDKPureSignatures =
         GenInputsAbstract.getStringSetFromFile(
             Paths.get("/home/casey/observer-pure-no-init.txt"), "observer", "//.*", null);
@@ -392,7 +392,12 @@ public class GenTests extends GenInputsAbstract {
      */
     AbstractGenerator explorer =
         new ForwardGenerator(
-            operations, sideEffectFreeMethods, new GenInputsAbstract.Limits(), componentMgr, listenerMgr);
+            operations,
+            sideEffectFreeMethods,
+            new GenInputsAbstract.Limits(),
+            componentMgr,
+            listenerMgr,
+            classesUnderTest);
 
     /* log setup. TODO: handle environment variables like other methods in TestUtils do. */
     operationModel.log();
@@ -420,7 +425,7 @@ public class GenTests extends GenInputsAbstract {
     try {
       objectConstructor = TypedOperation.forConstructor(Object.class.getConstructor());
     } catch (NoSuchMethodException e) {
-      throw new BugInRandoopException("failed to get Object constructor", e);
+      throw new RandoopBug("failed to get Object constructor", e);
     }
 
     Sequence newObj = new Sequence().extend(objectConstructor);
@@ -453,7 +458,7 @@ public class GenTests extends GenInputsAbstract {
           ExecutionVisitor vis = cls.getDeclaredConstructor().newInstance();
           visitors.add(vis);
         } catch (Exception e) {
-          throw new BugInRandoopException("Error while loading visitor class " + visitorClsName, e);
+          throw new RandoopBug("Error while loading visitor class " + visitorClsName, e);
         }
       }
     }
@@ -480,14 +485,13 @@ public class GenTests extends GenInputsAbstract {
 
       System.exit(1);
     } catch (RandoopInstantiationError e) {
-      throw new BugInRandoopException("Error instantiating operation " + e.getOpName(), e);
+      throw new RandoopBug("Error instantiating operation " + e.getOpName(), e);
     } catch (RandoopGenerationError e) {
-      throw new BugInRandoopException(
-          "Error in generation with operation " + e.getInstantiatedOperation(), e);
+      throw new RandoopBug("Error in generation with operation " + e.getInstantiatedOperation(), e);
     } catch (SequenceExecutionException e) {
-      throw new BugInRandoopException("Error executing generated sequence", e);
+      throw new RandoopBug("Error executing generated sequence", e);
     } catch (RandoopLoggingError e) {
-      throw new BugInRandoopException("Logging error", e);
+      throw new RandoopBug("Logging error", e);
     }
 
     /* post generation */
@@ -761,25 +765,36 @@ public class GenTests extends GenInputsAbstract {
    */
   private void printSequenceExceptionError(AbstractGenerator explorer, SequenceExceptionError e) {
 
-    String msg =
-        String.format(
-            "%n%nERROR: Randoop stopped because of a flaky test.%n%n"
-                + "This can happen when Randoop is run on methods that side-effect global state.%n"
-                + "See the \"Randoop stopped because of a flaky test\" section of the user manual.%n");
-    if (GenInputsAbstract.log == null) {
-      msg += "For more details, rerun with logging turned on with --log=FILENAME.";
-    } else {
-      msg += "For more details, see the log at " + GenInputsAbstract.log;
-    }
+    StringJoiner msg = new StringJoiner(System.getProperty("line.separator"));
+    msg.add("");
+    msg.add("");
+    msg.add("ERROR: Randoop stopped because of a flaky test.");
+    msg.add("");
+    msg.add("This can happen when Randoop is run on methods that side-effect global state.");
+    msg.add("It can also indicate a bug in Randoop.  For example, it is often a bug in");
+    msg.add("Randoop if the Exception is ClassCastException and the Input Subsequence\"");
+    msg.add("below compiles but does not run.");
+    msg.add("See the below info and https://randoop.github.io/randoop/manual/#flaky-tests .");
+    msg.add("");
+    msg.add(String.format("Exception:%n  %s%n", e.getError()));
+    msg.add(String.format("Statement:%n  %s%n", e.getStatement()));
+    // No trailing newline needed.
+    msg.add(String.format("Full sequence:%n%s", e.getSequence()));
+    // No trailing newline needed.
+    msg.add(String.format("Input subsequence:%n%s", e.getSubsequence().toCodeString()));
+
+    Log.logPrintf("%s%n", msg);
     System.out.println(msg);
 
+    if (GenInputsAbstract.log == null) {
+      System.out.println("For more details, rerun with logging turned on with --log=FILENAME.");
+    } else {
+      System.out.println("For more details, see the log at " + GenInputsAbstract.log);
+    }
+
     if (Log.isLoggingOn()) {
+
       Sequence subsequence = e.getSubsequence();
-      Log.logPrintf("%s%n", msg);
-      Log.logPrintf("Exception:%n  %s%n", e.getError());
-      Log.logPrintf("Statement:%n  %s%n", e.getStatement());
-      Log.logPrintf("Full sequence:%n%s%n", e.getSequence());
-      Log.logPrintf("Input subsequence:%n%s%n", subsequence.toCodeString());
 
       /*
        * Get the set of operations executed since the first execution of the flaky subsequence
@@ -808,12 +823,14 @@ public class GenTests extends GenInputsAbstract {
           Log.logPrintf("%s%n", opName);
         }
       } else {
-        System.err.printf(
-            "Unable to find a previous occurrence of subsequence where exception was thrown:%n"
-                + "  %s%n"
-                + "Please submit an issue at https://github.com/randoop/randoop/issues/new%n",
+        Log.logPrintf(
+            "No previous occurrence of subsequence where exception was thrown:%n" + "%s%n"
+            // + "Please submit an issue at https://github.com/randoop/randoop/issues/new%n"
+            ,
             subsequence);
       }
+      Log.logPrintf("%n");
+      Log.logStackTrace(e);
     }
   }
 
@@ -916,21 +933,15 @@ public class GenTests extends GenInputsAbstract {
     // Start with checking for invalid exceptions.
     TestCheckGenerator testGen =
         new ValidityCheckingGenerator(
-            IS_INVALID, GenInputsAbstract.flaky_test_behavior == FlakyTestAction.HALT);
+            GenInputsAbstract.flaky_test_behavior == FlakyTestAction.HALT);
 
     // Extend with contract checker.
-    ContractCheckingGenerator contractVisitor = new ContractCheckingGenerator(contracts, IS_ERROR);
+    ContractCheckingGenerator contractVisitor = new ContractCheckingGenerator(contracts);
     testGen = new ExtendGenerator(testGen, contractVisitor);
 
     // And, generate regression tests, unless user says not to.
     if (!GenInputsAbstract.no_regression_tests) {
-      ExceptionPredicate isExpected;
-      if (GenInputsAbstract.no_regression_assertions) {
-        isExpected = new AlwaysFalseExceptionPredicate();
-      } else {
-        isExpected = ExceptionBehaviorPredicate.IS_EXPECTED;
-      }
-      ExpectedExceptionCheckGen expectation = new ExpectedExceptionCheckGen(visibility, isExpected);
+      ExpectedExceptionCheckGen expectation = new ExpectedExceptionCheckGen(visibility);
 
       RegressionCaptureGenerator regressionVisitor =
           new RegressionCaptureGenerator(
@@ -980,7 +991,7 @@ public class GenTests extends GenInputsAbstract {
    * Returns the list of JDK specification files from the {@code specifications/jdk} resources
    * directory in the Randoop jar file.
    *
-   * @throws BugInRandoopException if there is an error locating the specification files
+   * @throws randoop.main.RandoopBug if there is an error locating the specification files
    * @return the list of JDK specification files
    */
   private Collection<? extends Path> getJDKSpecificationFiles() {
@@ -993,7 +1004,7 @@ public class GenTests extends GenInputsAbstract {
         fileList.add(entry);
       }
     } catch (IOException e) {
-      throw new BugInRandoopException("Error reading JDK specification directory", e);
+      throw new RandoopBug("Error reading JDK specification directory", e);
     }
 
     return fileList;
@@ -1004,7 +1015,7 @@ public class GenTests extends GenInputsAbstract {
    *
    * @param resourceDirectory the resource directory relative to the root of the jar file, should
    *     start with "/"
-   * @throws BugInRandoopException if an error occurs when locating the directory
+   * @throws randoop.main.RandoopBug if an error occurs when locating the directory
    * @return the {@code Path} for the resource directory
    */
   private Path getResourceDirectoryPath(String resourceDirectory) {
@@ -1012,14 +1023,14 @@ public class GenTests extends GenInputsAbstract {
     try {
       directoryURI = GenTests.class.getResource(resourceDirectory).toURI();
     } catch (URISyntaxException e) {
-      throw new BugInRandoopException("Error locating directory " + resourceDirectory, e);
+      throw new RandoopBug("Error locating directory " + resourceDirectory, e);
     }
 
     FileSystem fileSystem = null;
     try {
       fileSystem = FileSystems.newFileSystem(directoryURI, Collections.<String, Object>emptyMap());
     } catch (IOException e) {
-      throw new BugInRandoopException("Error locating directory " + resourceDirectory, e);
+      throw new RandoopBug("Error locating directory " + resourceDirectory, e);
     }
     return fileSystem.getPath(resourceDirectory);
   }

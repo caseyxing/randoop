@@ -30,7 +30,7 @@ import randoop.MethodReplacements;
  * href="https://randoop.github.io/randoop/manual/index.html#replacecall">replacecall user
  * documentation</a> the file format.) Default replacements are given in an internal resource file
  * {@code "default-replacements.txt"}. User replacements are then loaded using the {@code
- * --map-calls} command-line argument. A user replacement may override a default replacement.
+ * --replacement-file} command-line argument. A user replacement may override a default replacement.
  *
  * <p>The classes of packages listed in the resource file {@code "default-load-exclusions.txt"} are
  * excluded from transformation.
@@ -80,11 +80,6 @@ public class ReplaceCallAgent {
    * @throws IOException if there is an error reading a file
    */
   public static void premain(String agentArgs, Instrumentation instrumentation) throws IOException {
-    if (verbose) {
-      System.out.format(
-          "In premain, agentargs ='%s', " + "Instrumentation = '%s'%n", agentArgs, instrumentation);
-    }
-
     try {
       if (agentArgs != null) { // If there are any arguments, parse them
         Options options = new Options(ReplaceCallAgent.class);
@@ -93,6 +88,12 @@ public class ReplaceCallAgent {
           System.err.printf("Unexpected agent arguments %s%n", Arrays.toString(target_args));
           System.exit(1); // Exit on bad user input.
         }
+      }
+
+      if (verbose) {
+        System.out.format(
+            "In premain, agentargs ='%s', " + "Instrumentation = '%s'%n",
+            agentArgs, instrumentation);
       }
 
       debugPath = Paths.get("").toAbsolutePath().toAbsolutePath();
@@ -275,8 +276,7 @@ public class ReplaceCallAgent {
   /**
    * Private exception class used to manage agent-specific errors.
    *
-   * <p>Analogous to {@code BugInRandoopException}, but that class is not available within the
-   * agent.
+   * <p>Analogous to {@code RandoopBug}, but that class is not available within the agent.
    */
   private static class BugInAgentException extends Throwable {
 

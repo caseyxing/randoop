@@ -33,16 +33,20 @@ import randoop.types.TypeVariable;
  */
 public abstract class TypedOperation implements Operation, Comparable<TypedOperation> {
 
-  /** The operation to be decorated */
+  /** The operation to be decorated. */
   private final CallableOperation operation;
 
-  /** The type tuple of input types. */
+  /**
+   * The type tuple of input types. For a non-static method call or an instance field access, the
+   * first input type is always that of the receiver, that is, the declaring class of the method or
+   * the field. Refer to {@link Operation}.
+   */
   private final TypeTuple inputTypes;
 
   /** The output type. */
   private final Type outputType;
 
-  /** The specification for this operation */
+  /** The specification for this operation. */
   private ExecutableSpecification execSpec;
 
   /**
@@ -115,8 +119,8 @@ public abstract class TypedOperation implements Operation, Comparable<TypedOpera
     }
 
     // the output type
-    // (TODO: Why is this necessary?  MethodComparator ignores the output type, and this makes this
-    // comparator inconsistent with MethodComparator.)
+    // (TODO: Why is this comparison necessary?  MethodComparator ignores the output type, and this
+    // comparison makes this method comparator inconsistent with MethodComparator.)
     result = this.outputType.compareTo(other.outputType);
     if (result != 0) {
       return result;
@@ -151,7 +155,9 @@ public abstract class TypedOperation implements Operation, Comparable<TypedOpera
   }
 
   /**
-   * Returns the tuple of input types for this operation.
+   * Returns the tuple of input types for this operation. For a non-static method call or an
+   * instance field access, the first input type is always the declaring class of the method or
+   * field.
    *
    * @return tuple of concrete input types
    */

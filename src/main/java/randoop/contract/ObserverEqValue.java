@@ -60,7 +60,12 @@ public final class ObserverEqValue extends ObjectContract {
             value, value.getClass(), observer);
   }
 
-  /** Returns true if this value can be written as a literal in Java source code. */
+  /**
+   * Returns true if the argument can be written as a literal in Java source code.
+   *
+   * @param value the value to be tested
+   * @return true if the argument can be written as a literal in Java source code
+   */
   public static boolean isLiteralValue(Object value) {
     if (value == null) {
       return false;
@@ -80,8 +85,8 @@ public final class ObserverEqValue extends ObjectContract {
     if (value == null) {
       b.append(String.format("assertNull(\"x0.%s() == null\", x0.%s());", methodname, methodname));
     } else if (observer.getOutputType().isPrimitive()
-        && (!value.equals(Double.NaN))
-        && (!value.equals(Float.NaN))) {
+        && !value.equals(Double.NaN)
+        && !value.equals(Float.NaN)) {
       if (observer.getOutputType().runtimeClassIs(boolean.class)) {
         assert value.equals(true) || value.equals(false);
         if (value.equals(true)) {

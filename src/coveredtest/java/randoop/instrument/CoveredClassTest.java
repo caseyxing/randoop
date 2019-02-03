@@ -11,6 +11,7 @@ import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -39,7 +40,6 @@ import randoop.test.ContractSet;
 import randoop.test.TestCheckGenerator;
 import randoop.types.Type;
 import randoop.util.MultiMap;
-import randoop.util.predicate.Predicate;
 
 public class CoveredClassTest {
 
@@ -227,11 +227,11 @@ public class CoveredClassTest {
     ComponentManager componentMgr = new ComponentManager(components);
     operationModel.addClassLiterals(
         componentMgr, GenInputsAbstract.literals_file, GenInputsAbstract.literals_level);
-    
+
     Set<String> sideEffectFreeSignatures =
         GenInputsAbstract.getStringSetFromFile(
             GenInputsAbstract.side_effect_free_methods, "side effect free methods", "//.*", null);
-    
+
     Set<String> pureSignatures =
         GenInputsAbstract.getStringSetFromFile(
             GenInputsAbstract.pure_methods, "pure methods", "//.*", null);
@@ -239,7 +239,7 @@ public class CoveredClassTest {
     Set<String> builtInJDKSideEffectFreeSignatures =
         GenInputsAbstract.getStringSetFromFile(
             Paths.get("/home/casey/observer-sfe-no-init.txt"), "observer", "//.*", null);
-    
+
     Set<String> builtInJDKPureSignatures =
         GenInputsAbstract.getStringSetFromFile(
             Paths.get("/home/casey/observer-pure-no-init.txt"), "observer", "//.*", null);
@@ -263,7 +263,7 @@ public class CoveredClassTest {
       System.exit(1);
       throw new Error("dead code");
     }
-    
+
     assert sideEffectFreeMap != null;
     Set<TypedOperation> sideEffectFreeMethods = new LinkedHashSet<>();
     for (Type keyType : sideEffectFreeMap.keySet()) {
@@ -273,7 +273,12 @@ public class CoveredClassTest {
     RandoopListenerManager listenerMgr = new RandoopListenerManager();
     ForwardGenerator testGenerator =
         new ForwardGenerator(
-            model, sideEffectFreeMethods, new GenInputsAbstract.Limits(), componentMgr, listenerMgr);
+            model,
+            sideEffectFreeMethods,
+            new GenInputsAbstract.Limits(),
+            componentMgr,
+            listenerMgr,
+            operationModel.getClassTypes());
     GenTests genTests = new GenTests();
 
     TypedOperation objectConstructor;

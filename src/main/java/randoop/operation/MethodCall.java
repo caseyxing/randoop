@@ -3,8 +3,10 @@ package randoop.operation;
 import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import org.plumelib.util.ArraysPlume;
 import randoop.ExceptionalExecution;
 import randoop.ExecutionOutcome;
 import randoop.NormalExecution;
@@ -165,7 +167,13 @@ public final class MethodCall extends CallableOperation {
     Object[] params = new Object[paramsLength];
     for (int i = 0; i < params.length; i++) {
       params[i] = input[i + paramsStartIndex];
-      Log.logPrintf("  Param %d = %s%n", i, params[i]);
+      if (Log.isLoggingOn()) {
+        if (params[i] != null && params[i].getClass().isArray()) {
+          Log.logPrintf("  Param %d = %s%n", i, ArraysPlume.toString(params[i]));
+        } else {
+          Log.logPrintf("  Param %d = %s%n", i, params[i]);
+        }
+      }
     }
 
     MethodReflectionCode code = new MethodReflectionCode(this.method, receiver, params);
@@ -210,6 +218,7 @@ public final class MethodCall extends CallableOperation {
    * @throws OperationParseException if s does not match expected descriptor
    * @see OperationParser#parse(String)
    */
+  @SuppressWarnings("signature") // parsing
   public static TypedClassOperation parse(String signature) throws OperationParseException {
     if (signature == null) {
       throw new IllegalArgumentException("signature may not be null");
@@ -243,16 +252,21 @@ public final class MethodCall extends CallableOperation {
       throw new OperationParseException(e.getMessage() + " while parsing \"" + signature + "\"");
     }
     Method m = null;
-    String msg = "Method " + methodString + " does not exist";
     try {
       m = classType.getRuntimeClass().getDeclaredMethod(opname, typeArguments);
     } catch (NoSuchMethodException e) {
-      msg += ": " + e;
-    }
-    if (m == null) {
       try {
         m = classType.getRuntimeClass().getMethod(opname, typeArguments);
-      } catch (NoSuchMethodException e) {
+      } catch (NoSuchMethodException e2) {
+        String msg =
+            "Method "
+                + opname
+                + " with parameters "
+                + Arrays.toString(typeArguments)
+                + " does not exist in"
+                + classType
+                + ": "
+                + e;
         throw new OperationParseException(msg);
       }
     }
