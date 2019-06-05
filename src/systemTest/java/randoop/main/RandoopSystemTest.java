@@ -379,6 +379,7 @@ public class RandoopSystemTest {
     options.setOption("null-ratio", "0.3");
     options.setOption("alias-ratio", "0.3");
     options.setOption("input-selection", "small-tests");
+    options.setFlag("log=toolong.txt");
     options.setFlag("clear=2000");
     options.addClassList("resources/systemTest/jdk_classlist.txt");
 

@@ -14,7 +14,6 @@ import randoop.contract.PrimValue;
 import randoop.main.GenInputsAbstract;
 import randoop.operation.TypedClassOperation;
 import randoop.reflection.OmitMethodsPredicate;
-import randoop.reflection.OperationModel;
 import randoop.reflection.VisibilityPredicate;
 import randoop.sequence.ExecutableSequence;
 import randoop.sequence.Statement;
@@ -223,17 +222,17 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
 
                 Object value = ((NormalExecution) outcome).getRuntimeValue();
 
-                // Ignore non-callable methods
+                /*// Ignore non-callable methods
                 if (OperationModel.nonInstantiable(value.getClass(), isVisible) != null) {
                   continue;
-                }
+                }*/
 
-                // Don't create assertions over types that are not either primitives
+                /*// Don't create assertions over types that are not either primitives
                 // or strings.
                 if (!PrimitiveTypes.isBoxedPrimitive(value.getClass())
                     && !value.getClass().equals(String.class)) {
                   continue;
-                }
+                }*/
 
                 // Don't create assertions over strings that look like raw object
                 // references.
