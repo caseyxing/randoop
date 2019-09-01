@@ -2,7 +2,6 @@ package instrument;
 
 import static org.junit.Assert.assertTrue;
 
-import components.DialogDemo;
 import input.SystemExitClass;
 import javax.swing.*;
 import org.junit.Rule;
@@ -31,7 +30,7 @@ public class CallReplacementTest {
   }
 
   // code borrowed from {@code createAndShowGUI()} in Oracle example components.DialogDemo
-  @Test
+  /*@Test
   public void swingTest() {
     JFrame frame = new JFrame("TestFrame");
 
@@ -46,5 +45,5 @@ public class CallReplacementTest {
     frame.pack();
 
     frame.setVisible(true);
-  }
+  }*/
 }
