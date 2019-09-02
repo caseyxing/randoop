@@ -393,8 +393,11 @@ public class RandoopSystemTest {
     CoverageChecker coverageChecker =
         new CoverageChecker(
             options,
+            "java7.util7.Arrays.copyOfRange(java.lang.Object[], int, int) ignore",
+            "java7.util7.Collections.unmodifiableSortedMap(java7.util7.SortedMap) ignore",
             "java7.util7.ArrayList.addAll(int, java7.util7.Collection) ignore",
             "java7.util7.ArrayList.addAll(java7.util7.Collection) ignore",
+            "java7.util7.ArrayList.fastRemove(int) ignore",
             "java7.util7.ArrayList.hugeCapacity(int) exclude",
             "java7.util7.ArrayList.readObject(java.io.ObjectInputStream) exclude",
             "java7.util7.ArrayList.remove(int) ignore",
@@ -405,6 +408,7 @@ public class RandoopSystemTest {
             "java7.util7.Arrays.binarySearch(char[], int, int, char) ignore",
             "java7.util7.Arrays.binarySearch(double[], int, int, double) ignore",
             "java7.util7.Arrays.binarySearch(int[], int, int, int) ignore",
+            "java7.util7.Arrays.binarySearch(long[], int, int, long) ignore",
             "java7.util7.Arrays.binarySearch(java.lang.Object[], int, int, java.lang.Object) ignore",
             "java7.util7.Arrays.binarySearch(java.lang.Object[], int, int, java.lang.Object, java7.util7.Comparator) exclude",
             "java7.util7.Arrays.binarySearch(java.lang.Object[], java.lang.Object, java7.util7.Comparator) exclude",
