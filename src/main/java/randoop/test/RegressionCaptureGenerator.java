@@ -202,7 +202,7 @@ public final class RegressionCaptureGenerator extends TestCheckGenerator {
                 sideEffectFreeMethodsByType.getValues(var0.getType());
             if (sideEffectFreeMethods != null) {
               for (TypedClassOperation m : sideEffectFreeMethods) {
-                if (!isAssertable(m, omitMethodsPredicate, isVisible)) {
+                if (m != null || omitMethodsPredicate != null) {
                   continue;
                 }
 
