@@ -393,6 +393,11 @@ public class RandoopSystemTest {
     CoverageChecker coverageChecker =
         new CoverageChecker(
             options,
+            "java7.util7.Arrays.binarySearch(long[], int, int, long) ignore",
+            "java7.util7.Arrays.sort(int[], int, int) ignore",
+            "java7.util7.Collections.synchronizedSortedMap(java7.util7.SortedMap) ignore",
+            "java7.util7.Collections.unmodifiableSortedMap(java7.util7.SortedMap) ignore",
+            "java7.util7.LinkedList.unlink(java7.util7.LinkedList.Node) ignore",
             "java7.util7.ArrayList.addAll(int, java7.util7.Collection) ignore",
             "java7.util7.ArrayList.addAll(java7.util7.Collection) ignore",
             "java7.util7.ArrayList.hugeCapacity(int) exclude",
@@ -483,7 +488,6 @@ public class RandoopSystemTest {
             "java7.util7.Collections.newSetFromMap(java7.util7.Map) exclude",
             "java7.util7.Collections.rotate2(java7.util7.List, int) exclude",
             "java7.util7.Collections.shuffle(java7.util7.List) exclude",
-            "java7.util7.Collections.singletonIterator(java.lang.Object) exclude",
             "java7.util7.Collections.sort(java7.util7.List) exclude",
             "java7.util7.Collections.sort(java7.util7.List, java7.util7.Comparator) exclude",
             "java7.util7.Collections.swap(java.lang.Object[], int, int) exclude",
@@ -810,7 +814,7 @@ public class RandoopSystemTest {
 
     RandoopRunStatus runStatus = generateAndCompile(testEnvironment, options, false);
 
-    int expectedTests = 5;
+    int expectedTests = 89;
     assertEquals(
         "should have generated " + expectedTests + " tests",
         expectedTests,
