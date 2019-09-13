@@ -52,7 +52,6 @@ import randoop.generation.SeedSequences;
 import randoop.generation.TestUtils;
 import randoop.instrument.CoveredClassVisitor;
 import randoop.operation.Operation;
-import randoop.operation.OperationParseException;
 import randoop.operation.TypedClassOperation;
 import randoop.operation.TypedOperation;
 import randoop.operation.TypedOperation.RankedTypeOperation;
@@ -578,7 +577,7 @@ public class GenTests extends GenInputsAbstract {
    * @return a map from a Type to a set of side-effect-free methods for that type
    */
   public static MultiMap<Type, TypedClassOperation> readSideEffectFreeMethods() {
-    MultiMap<Type, TypedClassOperation> sideEffectFreeJDKMethods;
+    // MultiMap<Type, TypedClassOperation> sideEffectFreeJDKMethods;
     /*String sefDefaultsFileName = "/JDK-sef-methods.txt";
     try {
       InputStream inputStream = GenTests.class.getResourceAsStream(sefDefaultsFileName);
@@ -587,7 +586,7 @@ public class GenTests extends GenInputsAbstract {
       throw new RandoopBug(
           String.format("Incorrectly formatted method in file %s: %s%n", sefDefaultsFileName, e));
     }*/
-    sideEffectFreeJDKMethods = new MultiMap<>();
+    /*sideEffectFreeJDKMethods = new MultiMap<>();
 
     MultiMap<Type, TypedClassOperation> sideEffectFreeUserMethods;
     try {
@@ -598,11 +597,11 @@ public class GenTests extends GenInputsAbstract {
           String.format(
               "Incorrectly formatted method in file %s: %s%n",
               GenInputsAbstract.side_effect_free_methods, e));
-    }
+    }*/
 
     MultiMap<Type, TypedClassOperation> result = new MultiMap<>();
-    result.addAll(sideEffectFreeJDKMethods);
-    result.addAll(sideEffectFreeUserMethods);
+    /*result.addAll(sideEffectFreeJDKMethods);
+    result.addAll(sideEffectFreeUserMethods);*/
     return result;
   }
 
