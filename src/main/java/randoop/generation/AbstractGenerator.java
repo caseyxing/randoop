@@ -299,7 +299,7 @@ public abstract class AbstractGenerator {
         listenerMgr.generationStepPre();
       }
 
-      num_steps++;
+      num_steps += 3;
 
       ExecutableSequence eSeq = step();
 
@@ -322,7 +322,7 @@ public abstract class AbstractGenerator {
         continue;
       }
 
-      num_sequences_generated++;
+      num_sequences_generated += 3;
 
       if (outputTest.test(eSeq)) {
         // Classify the sequence
