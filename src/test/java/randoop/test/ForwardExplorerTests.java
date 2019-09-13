@@ -31,12 +31,6 @@ import randoop.reflection.VisibilityPredicate;
 import randoop.sequence.ExecutableSequence;
 import randoop.sequence.Sequence;
 import randoop.sequence.Variable;
-import randoop.test.bh.BH;
-import randoop.test.bh.Body;
-import randoop.test.bh.Cell;
-import randoop.test.bh.MathVector;
-import randoop.test.bh.Node;
-import randoop.test.bh.Tree;
 import randoop.types.ClassOrInterfaceType;
 import randoop.types.JavaTypes;
 import randoop.types.TypeTuple;
@@ -129,7 +123,7 @@ public class ForwardExplorerTests {
     assertTrue(random);
   }
 
-  @Test
+  /*@Test
   public void test4() throws Exception {
     randoop.util.Randomness.setSeed(0);
     ReflectionExecutor.resetStatistics();
@@ -182,7 +176,7 @@ public class ForwardExplorerTests {
     assertTrue(mathvector);
     assertTrue(node);
     assertTrue(tree);
-  }
+  }*/
 
   private static TestCheckGenerator createChecker(ContractSet contracts) {
     return GenTests.createTestCheckGenerator(

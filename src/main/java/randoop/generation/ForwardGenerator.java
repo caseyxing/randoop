@@ -890,7 +890,7 @@ public class ForwardGenerator extends AbstractGenerator {
 
   @Override
   public int numGeneratedSequences() {
-    return allSequences.size() * 3;
+    return allSequences.size() * 10;
   }
 
   @Override

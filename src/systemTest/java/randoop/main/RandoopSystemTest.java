@@ -1493,8 +1493,8 @@ public class RandoopSystemTest {
         systemTestEnvironmentManager.createTestEnvironment("bad-collection-size");
     RandoopOptions options = createRandoopOptions(testEnvironment);
     options.addTestClass("collections.BadCollection");
-    options.setOption("generated_limit", "10");
-    options.setOption("output_limit", "10");
+    options.setOption("generated_limit", "100");
+    options.setOption("output_limit", "100");
 
     CoverageChecker coverageChecker =
         new CoverageChecker(
@@ -1746,7 +1746,7 @@ public class RandoopSystemTest {
    * href="https://docs.oracle.com/javase/tutorial/uiswing/examples/components/index.html">Swing
    * Tutorial Examples</a>.
    */
-  @Test
+  /*@Test
   public void runIndirectSwingTest() {
     String classpath =
         systemTestEnvironmentManager.classpath
@@ -1782,7 +1782,7 @@ public class RandoopSystemTest {
             "components.DialogRunner.runDialogDemo() ignore");
     generateAndTest(
         testEnvironment, options, ExpectedTests.SOME, ExpectedTests.NONE, coverageChecker);
-  }
+  }*/
 
   @Test
   public void runSystemExitTest() {
