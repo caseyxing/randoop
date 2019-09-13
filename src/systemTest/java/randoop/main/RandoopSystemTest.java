@@ -393,6 +393,11 @@ public class RandoopSystemTest {
     CoverageChecker coverageChecker =
         new CoverageChecker(
             options,
+            "java7.util7.Arrays.binarySearch(long[], int, int, long) ignore",
+            "java7.util7.Arrays.sort(int[], int, int) ignore",
+            "java7.util7.Collections.synchronizedSortedMap(java7.util7.SortedMap) ignore",
+            "java7.util7.Collections.unmodifiableSortedMap(java7.util7.SortedMap) ignore",
+            "java7.util7.LinkedList.unlink(java7.util7.LinkedList.Node) ignore",
             "java7.util7.ArrayList.addAll(int, java7.util7.Collection) ignore",
             "java7.util7.ArrayList.addAll(java7.util7.Collection) ignore",
             "java7.util7.ArrayList.hugeCapacity(int) exclude",
@@ -483,7 +488,6 @@ public class RandoopSystemTest {
             "java7.util7.Collections.newSetFromMap(java7.util7.Map) exclude",
             "java7.util7.Collections.rotate2(java7.util7.List, int) exclude",
             "java7.util7.Collections.shuffle(java7.util7.List) exclude",
-            "java7.util7.Collections.singletonIterator(java.lang.Object) exclude",
             "java7.util7.Collections.sort(java7.util7.List) exclude",
             "java7.util7.Collections.sort(java7.util7.List, java7.util7.Comparator) exclude",
             "java7.util7.Collections.swap(java.lang.Object[], int, int) exclude",
@@ -810,7 +814,7 @@ public class RandoopSystemTest {
 
     RandoopRunStatus runStatus = generateAndCompile(testEnvironment, options, false);
 
-    int expectedTests = 5;
+    int expectedTests = 89;
     assertEquals(
         "should have generated " + expectedTests + " tests",
         expectedTests,
@@ -1546,201 +1550,201 @@ public class RandoopSystemTest {
    *   <li>There are differences in coverage between JDK 7 and 8 when running on Travis.
    * </ul>
    */
-  @Test
-  public void runDirectSwingTest() {
-    String classpath =
-        systemTestEnvironmentManager.classpath
-            + java.io.File.pathSeparator
-            + systemTestEnvironmentManager.replacecallAgentPath;
-    SystemTestEnvironment testEnvironment =
-        systemTestEnvironmentManager.createTestEnvironment(
-            "swing-direct-test",
-            classpath,
-            systemTestEnvironmentManager.replacecallAgentPath.toString());
+  /*@Test
+    public void runDirectSwingTest() {
+      String classpath =
+          systemTestEnvironmentManager.classpath
+              + java.io.File.pathSeparator
+              + systemTestEnvironmentManager.replacecallAgentPath;
+      SystemTestEnvironment testEnvironment =
+          systemTestEnvironmentManager.createTestEnvironment(
+              "swing-direct-test",
+              classpath,
+              systemTestEnvironmentManager.replacecallAgentPath.toString());
 
-    String genDebugDir = testEnvironment.workingDir.resolve("replacecall-generation").toString();
-    String testDebugDir = testEnvironment.workingDir.resolve("replacecall-testing").toString();
-    testEnvironment.addJavaAgent(
-        systemTestEnvironmentManager.replacecallAgentPath,
-        "--dont-transform=resources/systemTest/replacecall-exclusions.txt,--debug,--debug-directory="
-            + genDebugDir,
-        "--dont-transform=resources/systemTest/replacecall-exclusions.txt,--debug,--debug-directory="
-            + testDebugDir);
+      String genDebugDir = testEnvironment.workingDir.resolve("replacecall-generation").toString();
+      String testDebugDir = testEnvironment.workingDir.resolve("replacecall-testing").toString();
+      testEnvironment.addJavaAgent(
+          systemTestEnvironmentManager.replacecallAgentPath,
+          "--dont-transform=resources/systemTest/replacecall-exclusions.txt,--debug,--debug-directory="
+              + genDebugDir,
+          "--dont-transform=resources/systemTest/replacecall-exclusions.txt,--debug,--debug-directory="
+              + testDebugDir);
 
-    RandoopOptions options = createRandoopOptions(testEnvironment);
-    options.setPackageName("components");
-    options.addTestClass("components.ArrowIcon");
-    options.addTestClass("components.ConversionPanel");
-    options.addTestClass("components.Converter");
-    options.addTestClass("components.ConverterRangeModel");
-    options.addTestClass("components.Corner");
-    options.addTestClass("components.CrayonPanel");
-    options.addTestClass("components.CustomDialog");
-    options.addTestClass("components.DialogRunner");
-    options.addTestClass("components.DynamicTree");
-    options.addTestClass("components.FollowerRangeModel");
-    options.addTestClass("components.Framework");
-    options.addTestClass("components.GenealogyModel");
-    options.addTestClass("components.GenealogyTree");
-    options.addTestClass("components.ImageFileView");
-    options.addTestClass("components.ImageFilter");
-    options.addTestClass("components.ImagePreview");
-    options.addTestClass("components.ListDialog");
-    options.addTestClass("components.ListDialogRunner");
-    options.addTestClass("components.MissingIcon");
-    // getParent() returns null, which can cause NPE in javax.swing.JInternalFrame.setMaximum()
-    // options.addTestClass("components.MyInternalFrame");
-    options.addTestClass("components.Converter");
-    options.addTestClass("components.Person");
-    options.addTestClass("components.Rule");
-    options.addTestClass("components.ScrollablePicture");
-    options.addTestClass("components.Unit");
-    options.addTestClass("components.Utils");
+      RandoopOptions options = createRandoopOptions(testEnvironment);
+      options.setPackageName("components");
+      options.addTestClass("components.ArrowIcon");
+      options.addTestClass("components.ConversionPanel");
+      options.addTestClass("components.Converter");
+      options.addTestClass("components.ConverterRangeModel");
+      options.addTestClass("components.Corner");
+      options.addTestClass("components.CrayonPanel");
+      options.addTestClass("components.CustomDialog");
+      options.addTestClass("components.DialogRunner");
+      options.addTestClass("components.DynamicTree");
+      options.addTestClass("components.FollowerRangeModel");
+      options.addTestClass("components.Framework");
+      options.addTestClass("components.GenealogyModel");
+      options.addTestClass("components.GenealogyTree");
+      options.addTestClass("components.ImageFileView");
+      options.addTestClass("components.ImageFilter");
+      options.addTestClass("components.ImagePreview");
+      options.addTestClass("components.ListDialog");
+      options.addTestClass("components.ListDialogRunner");
+      options.addTestClass("components.MissingIcon");
+      // getParent() returns null, which can cause NPE in javax.swing.JInternalFrame.setMaximum()
+      // options.addTestClass("components.MyInternalFrame");
+      options.addTestClass("components.Converter");
+      options.addTestClass("components.Person");
+      options.addTestClass("components.Rule");
+      options.addTestClass("components.ScrollablePicture");
+      options.addTestClass("components.Unit");
+      options.addTestClass("components.Utils");
 
-    options.setOption("omit-field-list", "resources/systemTest/components/omitfields.txt");
-    //
-    options.setOption("output_limit", "1000");
-    options.setOption("generated_limit", "3000");
-    options.setOption("flaky-test-behavior", "DISCARD");
-    options.setOption("operation-history-log", "operation-log.txt");
-    options.setFlag("usethreads");
-    options.unsetFlag("deterministic");
+      options.setOption("omit-field-list", "resources/systemTest/components/omitfields.txt");
+      //
+      options.setOption("output_limit", "1000");
+      options.setOption("generated_limit", "3000");
+      options.setOption("flaky-test-behavior", "DISCARD");
+      options.setOption("operation-history-log", "operation-log.txt");
+      options.setFlag("usethreads");
+      options.unsetFlag("deterministic");
 
-    CoverageChecker coverageChecker =
-        new CoverageChecker(
-            options,
-            "components.ArrowIcon.getIconHeight() ignore",
-            "components.ArrowIcon.getIconWidth() ignore",
-            "components.ArrowIcon.paintIcon(java.awt.Component, java.awt.Graphics, int, int) ignore",
-            "components.ConversionPanel.actionPerformed(java.awt.event.ActionEvent) ignore",
-            "components.ConversionPanel.getMaximumSize() ignore",
-            "components.ConversionPanel.getMultiplier() ignore",
-            "components.ConversionPanel.getValue() ignore",
-            "components.ConversionPanel.propertyChange(java.beans.PropertyChangeEvent) ignore",
-            "components.ConversionPanel.stateChanged(javax.swing.event.ChangeEvent) ignore",
-            "components.Converter.createAndShowGUI() ignore",
-            "components.Converter.initLookAndFeel() ignore",
-            "components.Converter.main(java.lang.String[]) ignore",
-            "components.Converter.resetMaxValues(boolean) ignore",
-            "components.ConverterRangeModel.addChangeListener(javax.swing.event.ChangeListener) ignore",
-            "components.ConverterRangeModel.fireStateChanged() ignore",
-            "components.ConverterRangeModel.getDoubleValue() ignore",
-            "components.ConverterRangeModel.getExtent() ignore",
-            "components.ConverterRangeModel.getMaximum() ignore",
-            "components.ConverterRangeModel.getMinimum() ignore",
-            "components.ConverterRangeModel.getMultiplier() ignore",
-            "components.ConverterRangeModel.getValue() ignore",
-            "components.ConverterRangeModel.getValueIsAdjusting() ignore",
-            "components.ConverterRangeModel.removeChangeListener(javax.swing.event.ChangeListener) ignore",
-            "components.ConverterRangeModel.setDoubleValue(double) ignore",
-            "components.ConverterRangeModel.setExtent(int) ignore",
-            "components.ConverterRangeModel.setMaximum(int) ignore",
-            "components.ConverterRangeModel.setMinimum(int) ignore",
-            "components.ConverterRangeModel.setMultiplier(double) ignore",
-            "components.ConverterRangeModel.setRangeProperties(double, int, int, int, boolean) ignore",
-            "components.ConverterRangeModel.setRangeProperties(int, int, int, int, boolean) ignore",
-            "components.ConverterRangeModel.setValue(int) ignore",
-            "components.ConverterRangeModel.setValueIsAdjusting(boolean) ignore",
-            "components.Corner.paintComponent(java.awt.Graphics) ignore",
-            "components.CrayonPanel.actionPerformed(java.awt.event.ActionEvent) ignore",
-            "components.CrayonPanel.buildChooser() ignore",
-            "components.CrayonPanel.createCrayon(java.lang.String, javax.swing.border.Border) ignore",
-            // inconsistent JDK7 vs 8, due to different implementations of
-            // JComponent.getAccessibleContext
-            "components.CrayonPanel.createImageIcon(java.lang.String) ignore",
-            "components.CrayonPanel.getDisplayName() ignore",
-            "components.CrayonPanel.getLargeDisplayIcon() ignore",
-            "components.CrayonPanel.getSmallDisplayIcon() ignore",
-            "components.CrayonPanel.updateChooser() ignore",
-            "components.CustomDialog.actionPerformed(java.awt.event.ActionEvent) exclude",
-            "components.CustomDialog.actionPerformed(java.awt.event.ActionEvent) ignore",
-            "components.CustomDialog.clearAndHide() ignore",
-            "components.CustomDialog.getValidatedText() ignore",
-            "components.CustomDialog.propertyChange(java.beans.PropertyChangeEvent) ignore",
-            "components.DialogRunner.runDialogDemo() ignore",
-            "components.DynamicTree.addObject(java.lang.Object) ignore",
-            "components.DynamicTree.addObject(javax.swing.tree.DefaultMutableTreeNode, java.lang.Object) ignore",
-            "components.DynamicTree.addObject(javax.swing.tree.DefaultMutableTreeNode, java.lang.Object, boolean) ignore",
-            "components.DynamicTree.clear() ignore",
-            "components.DynamicTree.removeCurrentNode() ignore",
-            "components.FollowerRangeModel.getDoubleValue() ignore",
-            "components.FollowerRangeModel.getExtent() ignore",
-            "components.FollowerRangeModel.getMaximum() ignore",
-            "components.FollowerRangeModel.getValue() ignore",
-            "components.FollowerRangeModel.setDoubleValue(double) ignore",
-            "components.FollowerRangeModel.setExtent(int) ignore",
-            "components.FollowerRangeModel.setMaximum(int) ignore",
-            "components.FollowerRangeModel.setRangeProperties(int, int, int, int, boolean) ignore",
-            "components.FollowerRangeModel.setValue(int) ignore",
-            "components.FollowerRangeModel.stateChanged(javax.swing.event.ChangeEvent) ignore",
-            "components.Framework.createAndShowGUI() ignore",
-            "components.Framework.main(java.lang.String[]) ignore",
-            "components.Framework.makeNewWindow() ignore",
-            "components.Framework.quit(javax.swing.JFrame) ignore",
-            "components.Framework.quitConfirmed(javax.swing.JFrame) ignore",
-            "components.Framework.windowClosed(java.awt.event.WindowEvent) ignore",
-            "components.GenealogyModel.addTreeModelListener(javax.swing.event.TreeModelListener) ignore",
-            "components.GenealogyModel.fireTreeStructureChanged(components.Person) ignore",
-            "components.GenealogyModel.getChild(java.lang.Object, int) ignore",
-            "components.GenealogyModel.getChildCount(java.lang.Object) ignore",
-            "components.GenealogyModel.getIndexOfChild(java.lang.Object, java.lang.Object) ignore",
-            "components.GenealogyModel.getRoot() ignore",
-            "components.GenealogyModel.isLeaf(java.lang.Object) ignore",
-            "components.GenealogyModel.removeTreeModelListener(javax.swing.event.TreeModelListener) ignore",
-            "components.GenealogyModel.showAncestor(boolean, java.lang.Object) ignore",
-            "components.GenealogyModel.valueForPathChanged(javax.swing.tree.TreePath, java.lang.Object) ignore",
-            "components.GenealogyTree.showAncestor(boolean) ignore",
-            "components.ImageFileView.getDescription(java.io.File) ignore",
-            "components.ImageFileView.getIcon(java.io.File) ignore",
-            "components.ImageFileView.getName(java.io.File) ignore",
-            "components.ImageFileView.getTypeDescription(java.io.File) ignore",
-            "components.ImageFileView.isTraversable(java.io.File) ignore",
-            "components.ImageFilter.accept(java.io.File) ignore",
-            "components.ImageFilter.getDescription() ignore",
-            "components.ImagePreview.loadImage() ignore",
-            "components.ImagePreview.paintComponent(java.awt.Graphics) ignore",
-            "components.ImagePreview.propertyChange(java.beans.PropertyChangeEvent) ignore",
-            "components.ListDialog.actionPerformed(java.awt.event.ActionEvent) ignore",
-            "components.ListDialog.setValue(java.lang.String) ignore",
-            "components.ListDialog.showDialog(java.awt.Component, java.awt.Component, java.lang.String, java.lang.String, java.lang.String[], java.lang.String, java.lang.String) ignore",
-            "components.ListDialogRunner.createAndShowGUI() ignore",
-            "components.ListDialogRunner.createUI() ignore",
-            "components.ListDialogRunner.getAFont() ignore",
-            "components.ListDialogRunner.main(java.lang.String[]) ignore",
-            "components.MissingIcon.getIconHeight() ignore",
-            "components.MissingIcon.getIconWidth() ignore",
-            "components.MissingIcon.paintIcon(java.awt.Component, java.awt.Graphics, int, int) ignore",
-            "components.Person.getChildAt(int) ignore",
-            "components.Person.getChildCount() ignore",
-            "components.Person.getFather() ignore",
-            "components.Person.getIndexOfChild(components.Person) ignore",
-            "components.Person.getMother() ignore",
-            "components.Person.getName() ignore",
-            "components.Person.linkFamily(components.Person, components.Person, components.Person[]) ignore",
-            "components.Person.toString() ignore",
-            "components.Rule.getIncrement() ignore",
-            "components.Rule.isMetric() ignore",
-            "components.Rule.paintComponent(java.awt.Graphics) ignore",
-            "components.Rule.setIncrementAndUnits() ignore",
-            "components.Rule.setIsMetric(boolean) ignore",
-            "components.Rule.setPreferredHeight(int) ignore",
-            "components.Rule.setPreferredWidth(int) ignore",
-            "components.ScrollablePicture.getPreferredScrollableViewportSize() ignore",
-            "components.ScrollablePicture.getPreferredSize() ignore",
-            "components.ScrollablePicture.getScrollableBlockIncrement(java.awt.Rectangle, int, int) ignore",
-            "components.ScrollablePicture.getScrollableTracksViewportHeight() ignore",
-            "components.ScrollablePicture.getScrollableTracksViewportWidth() ignore",
-            "components.ScrollablePicture.getScrollableUnitIncrement(java.awt.Rectangle, int, int) ignore",
-            "components.ScrollablePicture.mouseDragged(java.awt.event.MouseEvent) ignore",
-            "components.ScrollablePicture.mouseMoved(java.awt.event.MouseEvent) ignore",
-            "components.ScrollablePicture.setMaxUnitIncrement(int) ignore",
-            "components.Unit.toString() ignore",
-            "components.Utils.getExtension(java.io.File) ignore");
+      CoverageChecker coverageChecker =
+          new CoverageChecker(
+              options,
+              "components.ArrowIcon.getIconHeight() ignore",
+              "components.ArrowIcon.getIconWidth() ignore",
+              "components.ArrowIcon.paintIcon(java.awt.Component, java.awt.Graphics, int, int) ignore",
+              "components.ConversionPanel.actionPerformed(java.awt.event.ActionEvent) ignore",
+              "components.ConversionPanel.getMaximumSize() ignore",
+              "components.ConversionPanel.getMultiplier() ignore",
+              "components.ConversionPanel.getValue() ignore",
+              "components.ConversionPanel.propertyChange(java.beans.PropertyChangeEvent) ignore",
+              "components.ConversionPanel.stateChanged(javax.swing.event.ChangeEvent) ignore",
+              "components.Converter.createAndShowGUI() ignore",
+              "components.Converter.initLookAndFeel() ignore",
+              "components.Converter.main(java.lang.String[]) ignore",
+              "components.Converter.resetMaxValues(boolean) ignore",
+              "components.ConverterRangeModel.addChangeListener(javax.swing.event.ChangeListener) ignore",
+              "components.ConverterRangeModel.fireStateChanged() ignore",
+              "components.ConverterRangeModel.getDoubleValue() ignore",
+              "components.ConverterRangeModel.getExtent() ignore",
+              "components.ConverterRangeModel.getMaximum() ignore",
+              "components.ConverterRangeModel.getMinimum() ignore",
+              "components.ConverterRangeModel.getMultiplier() ignore",
+              "components.ConverterRangeModel.getValue() ignore",
+              "components.ConverterRangeModel.getValueIsAdjusting() ignore",
+              "components.ConverterRangeModel.removeChangeListener(javax.swing.event.ChangeListener) ignore",
+              "components.ConverterRangeModel.setDoubleValue(double) ignore",
+              "components.ConverterRangeModel.setExtent(int) ignore",
+              "components.ConverterRangeModel.setMaximum(int) ignore",
+              "components.ConverterRangeModel.setMinimum(int) ignore",
+              "components.ConverterRangeModel.setMultiplier(double) ignore",
+              "components.ConverterRangeModel.setRangeProperties(double, int, int, int, boolean) ignore",
+              "components.ConverterRangeModel.setRangeProperties(int, int, int, int, boolean) ignore",
+              "components.ConverterRangeModel.setValue(int) ignore",
+              "components.ConverterRangeModel.setValueIsAdjusting(boolean) ignore",
+              "components.Corner.paintComponent(java.awt.Graphics) ignore",
+              "components.CrayonPanel.actionPerformed(java.awt.event.ActionEvent) ignore",
+              "components.CrayonPanel.buildChooser() ignore",
+              "components.CrayonPanel.createCrayon(java.lang.String, javax.swing.border.Border) ignore",
+              // inconsistent JDK7 vs 8, due to different implementations of
+              // JComponent.getAccessibleContext
+              "components.CrayonPanel.createImageIcon(java.lang.String) ignore",
+              "components.CrayonPanel.getDisplayName() ignore",
+              "components.CrayonPanel.getLargeDisplayIcon() ignore",
+              "components.CrayonPanel.getSmallDisplayIcon() ignore",
+              "components.CrayonPanel.updateChooser() ignore",
+              "components.CustomDialog.actionPerformed(java.awt.event.ActionEvent) exclude",
+              "components.CustomDialog.actionPerformed(java.awt.event.ActionEvent) ignore",
+              "components.CustomDialog.clearAndHide() ignore",
+              "components.CustomDialog.getValidatedText() ignore",
+              "components.CustomDialog.propertyChange(java.beans.PropertyChangeEvent) ignore",
+              "components.DialogRunner.runDialogDemo() ignore",
+              "components.DynamicTree.addObject(java.lang.Object) ignore",
+              "components.DynamicTree.addObject(javax.swing.tree.DefaultMutableTreeNode, java.lang.Object) ignore",
+              "components.DynamicTree.addObject(javax.swing.tree.DefaultMutableTreeNode, java.lang.Object, boolean) ignore",
+              "components.DynamicTree.clear() ignore",
+              "components.DynamicTree.removeCurrentNode() ignore",
+              "components.FollowerRangeModel.getDoubleValue() ignore",
+              "components.FollowerRangeModel.getExtent() ignore",
+              "components.FollowerRangeModel.getMaximum() ignore",
+              "components.FollowerRangeModel.getValue() ignore",
+              "components.FollowerRangeModel.setDoubleValue(double) ignore",
+              "components.FollowerRangeModel.setExtent(int) ignore",
+              "components.FollowerRangeModel.setMaximum(int) ignore",
+              "components.FollowerRangeModel.setRangeProperties(int, int, int, int, boolean) ignore",
+              "components.FollowerRangeModel.setValue(int) ignore",
+              "components.FollowerRangeModel.stateChanged(javax.swing.event.ChangeEvent) ignore",
+              "components.Framework.createAndShowGUI() ignore",
+              "components.Framework.main(java.lang.String[]) ignore",
+              "components.Framework.makeNewWindow() ignore",
+              "components.Framework.quit(javax.swing.JFrame) ignore",
+              "components.Framework.quitConfirmed(javax.swing.JFrame) ignore",
+              "components.Framework.windowClosed(java.awt.event.WindowEvent) ignore",
+              "components.GenealogyModel.addTreeModelListener(javax.swing.event.TreeModelListener) ignore",
+              "components.GenealogyModel.fireTreeStructureChanged(components.Person) ignore",
+              "components.GenealogyModel.getChild(java.lang.Object, int) ignore",
+              "components.GenealogyModel.getChildCount(java.lang.Object) ignore",
+              "components.GenealogyModel.getIndexOfChild(java.lang.Object, java.lang.Object) ignore",
+              "components.GenealogyModel.getRoot() ignore",
+              "components.GenealogyModel.isLeaf(java.lang.Object) ignore",
+              "components.GenealogyModel.removeTreeModelListener(javax.swing.event.TreeModelListener) ignore",
+              "components.GenealogyModel.showAncestor(boolean, java.lang.Object) ignore",
+              "components.GenealogyModel.valueForPathChanged(javax.swing.tree.TreePath, java.lang.Object) ignore",
+              "components.GenealogyTree.showAncestor(boolean) ignore",
+              "components.ImageFileView.getDescription(java.io.File) ignore",
+              "components.ImageFileView.getIcon(java.io.File) ignore",
+              "components.ImageFileView.getName(java.io.File) ignore",
+              "components.ImageFileView.getTypeDescription(java.io.File) ignore",
+              "components.ImageFileView.isTraversable(java.io.File) ignore",
+              "components.ImageFilter.accept(java.io.File) ignore",
+              "components.ImageFilter.getDescription() ignore",
+              "components.ImagePreview.loadImage() ignore",
+              "components.ImagePreview.paintComponent(java.awt.Graphics) ignore",
+              "components.ImagePreview.propertyChange(java.beans.PropertyChangeEvent) ignore",
+              "components.ListDialog.actionPerformed(java.awt.event.ActionEvent) ignore",
+              "components.ListDialog.setValue(java.lang.String) ignore",
+              "components.ListDialog.showDialog(java.awt.Component, java.awt.Component, java.lang.String, java.lang.String, java.lang.String[], java.lang.String, java.lang.String) ignore",
+              "components.ListDialogRunner.createAndShowGUI() ignore",
+              "components.ListDialogRunner.createUI() ignore",
+              "components.ListDialogRunner.getAFont() ignore",
+              "components.ListDialogRunner.main(java.lang.String[]) ignore",
+              "components.MissingIcon.getIconHeight() ignore",
+              "components.MissingIcon.getIconWidth() ignore",
+              "components.MissingIcon.paintIcon(java.awt.Component, java.awt.Graphics, int, int) ignore",
+              "components.Person.getChildAt(int) ignore",
+              "components.Person.getChildCount() ignore",
+              "components.Person.getFather() ignore",
+              "components.Person.getIndexOfChild(components.Person) ignore",
+              "components.Person.getMother() ignore",
+              "components.Person.getName() ignore",
+              "components.Person.linkFamily(components.Person, components.Person, components.Person[]) ignore",
+              "components.Person.toString() ignore",
+              "components.Rule.getIncrement() ignore",
+              "components.Rule.isMetric() ignore",
+              "components.Rule.paintComponent(java.awt.Graphics) ignore",
+              "components.Rule.setIncrementAndUnits() ignore",
+              "components.Rule.setIsMetric(boolean) ignore",
+              "components.Rule.setPreferredHeight(int) ignore",
+              "components.Rule.setPreferredWidth(int) ignore",
+              "components.ScrollablePicture.getPreferredScrollableViewportSize() ignore",
+              "components.ScrollablePicture.getPreferredSize() ignore",
+              "components.ScrollablePicture.getScrollableBlockIncrement(java.awt.Rectangle, int, int) ignore",
+              "components.ScrollablePicture.getScrollableTracksViewportHeight() ignore",
+              "components.ScrollablePicture.getScrollableTracksViewportWidth() ignore",
+              "components.ScrollablePicture.getScrollableUnitIncrement(java.awt.Rectangle, int, int) ignore",
+              "components.ScrollablePicture.mouseDragged(java.awt.event.MouseEvent) ignore",
+              "components.ScrollablePicture.mouseMoved(java.awt.event.MouseEvent) ignore",
+              "components.ScrollablePicture.setMaxUnitIncrement(int) ignore",
+              "components.Unit.toString() ignore",
+              "components.Utils.getExtension(java.io.File) ignore");
 
-    generateAndTest(
-        testEnvironment, options, ExpectedTests.SOME, ExpectedTests.NONE, coverageChecker);
-  }
-
+      generateAndTest(
+          testEnvironment, options, ExpectedTests.SOME, ExpectedTests.NONE, coverageChecker);
+    }
+  */
   /**
    * This test uses classes from (or based on) the <a
    * href="https://docs.oracle.com/javase/tutorial/uiswing/examples/components/index.html">Swing

@@ -296,9 +296,9 @@ public class ForwardGenerator extends AbstractGenerator {
       // its receiver and arguments. (This method doesn't side effect the receiver or
       // any argument, so Randoop should use some other shorter sequence
       // that produces the value.)
-      Sequence stmts = seq.sequence;
-      Statement stmt = stmts.statements.get(i);
-      boolean isSideEffectFree =
+      // Sequence stmts = seq.sequence;
+      // Statement stmt = stmts.statements.get(i);
+      /*boolean isSideEffectFree =
           stmt.isMethodCall() && sideEffectFreeMethods.contains(stmt.getOperation());
       Log.logPrintf("isSideEffectFree => %s for %s%n", isSideEffectFree, stmt);
       if (isSideEffectFree) {
@@ -306,7 +306,7 @@ public class ForwardGenerator extends AbstractGenerator {
         for (Integer inputIndex : inputVars) {
           seq.sequence.clearActiveFlag(inputIndex);
         }
-      }
+      }*/
 
       // If its runtime value is a primitive value, clear its active flag,
       // and if the value is new, add a sequence corresponding to that value.
