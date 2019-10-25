@@ -524,6 +524,7 @@ public class GenTests extends GenInputsAbstract {
       }
 
       List<ExecutableSequence> regressionSequences = explorer.getRegressionSequences();
+
       if (GenInputsAbstract.progressdisplay) {
         System.out.printf(
             "%nAbout to look for failing assertions in %d regression sequences.%n",
@@ -531,7 +532,6 @@ public class GenTests extends GenInputsAbstract {
         System.out.printf(
             "%nThere were %d subsumed sequences.%n", explorer.getSubsumedSequences().size());
       }
-
       FailingAssertionCommentWriter codeWriter =
           new FailingAssertionCommentWriter(testEnvironment, javaFileWriter);
       writeTestFiles(
