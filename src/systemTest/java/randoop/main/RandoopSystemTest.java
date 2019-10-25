@@ -199,6 +199,7 @@ public class RandoopSystemTest {
     options.setOption("npe-on-null-input", "EXPECTED");
     options.setFlag("debug_checks");
     options.setOption("omit-field-list", "resources/systemTest/testclassomitfields.txt");
+    options.setOption("operation-history-log", "operation-log.txt");
 
     CoverageChecker coverageChecker =
         new CoverageChecker(

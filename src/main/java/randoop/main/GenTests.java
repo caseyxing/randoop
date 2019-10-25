@@ -528,6 +528,8 @@ public class GenTests extends GenInputsAbstract {
         System.out.printf(
             "%nAbout to look for failing assertions in %d regression sequences.%n",
             regressionSequences.size());
+        System.out.printf(
+            "%nThere were %d subsumed sequences.%n", explorer.getSubsumedSequences().size());
       }
 
       FailingAssertionCommentWriter codeWriter =

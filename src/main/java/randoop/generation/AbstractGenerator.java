@@ -16,6 +16,7 @@ import randoop.main.GenInputsAbstract;
 import randoop.operation.TypedOperation;
 import randoop.sequence.ExecutableSequence;
 import randoop.sequence.Sequence;
+import randoop.sequence.Statement;
 import randoop.test.TestCheckGenerator;
 import randoop.util.Log;
 import randoop.util.ProgressDisplay;
@@ -323,18 +324,36 @@ public abstract class AbstractGenerator {
       }
 
       num_sequences_generated++;
+      boolean hasClone = false;
+      for (Statement s : eSeq.sequence.statements.toJDKList()) {
+        if (s.getOperation().toParsableString().equals("java7.util7.TreeSet.clone()"))
+          hasClone = true;
+      }
 
       if (outputTest.test(eSeq)) {
         // Classify the sequence
         if (eSeq.hasInvalidBehavior()) {
+          if (hasClone) {
+            System.out.println("CLONE invalid");
+          }
           invalidSequenceCount++;
         } else if (eSeq.hasFailure()) {
+          if (hasClone) {
+            System.out.println("CLONE error");
+          }
           operationHistory.add(eSeq.getOperation(), OperationOutcome.ERROR_SEQUENCE);
           num_failing_sequences++;
           outErrorSeqs.add(eSeq);
         } else {
+          if (hasClone) {
+            System.out.println("CLONE outRegression");
+          }
           outRegressionSeqs.add(eSeq);
           newRegressionTestHook(eSeq.sequence);
+        }
+      } else {
+        if (hasClone) {
+          System.out.println("CLONE not output");
         }
       }
 
@@ -400,6 +419,7 @@ public abstract class AbstractGenerator {
   public List<ExecutableSequence> getRegressionSequences() {
     List<ExecutableSequence> unique_seqs = new ArrayList<>();
     Set<Sequence> subsumed_seqs = this.getSubsumedSequences();
+    System.out.println("Prefiltering sequences count was: " + outRegressionSeqs.size());
     for (ExecutableSequence es : outRegressionSeqs) {
       if (!subsumed_seqs.contains(es.sequence)) {
         operationHistory.add(es.getOperation(), OperationOutcome.REGRESSION_SEQUENCE);

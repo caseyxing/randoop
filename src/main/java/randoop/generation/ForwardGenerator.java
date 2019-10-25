@@ -454,6 +454,12 @@ public class ForwardGenerator extends AbstractGenerator {
       return null;
     }
 
+    // Discard if sequence is not compilable.
+    if (!outputTest.test(new ExecutableSequence(newSequence))) {
+      System.out.println("Discarding incompilable seq");
+      return null;
+    }
+
     randoopConsistencyTests(newSequence);
 
     // Discard if sequence is a duplicate.
