@@ -359,9 +359,11 @@ public abstract class AbstractGenerator {
         }
       } else {
         if (hasClone) {
-          System.out.println("CLONE not output");
+          System.out.println("CLONE not output due to failure of outputTest");
           System.out.println();
           System.out.println(eSeq);
+          System.out.println();
+          System.out.println(outputTest);
           System.out.println();
         }
         num_failed_output_test++;
