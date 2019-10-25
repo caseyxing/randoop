@@ -464,6 +464,9 @@ public class ForwardGenerator extends AbstractGenerator {
     // Discard if sequence is not compilable.
     if (hasClone && !outputTest.test(eSeq)) {
       System.out.println("Discarding clone seq due to failing output test.");
+      System.out.println();
+      System.out.println(eSeq);
+      System.out.println();
       return null;
     }
 
