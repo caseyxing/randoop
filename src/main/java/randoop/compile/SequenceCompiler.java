@@ -6,6 +6,8 @@ import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringJoiner;
+import javax.tools.Diagnostic;
 import javax.tools.DiagnosticCollector;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
@@ -14,6 +16,7 @@ import javax.tools.ToolProvider;
 import org.checkerframework.checker.signature.qual.BinaryName;
 import org.checkerframework.checker.signature.qual.BinaryNameInUnnamedPackage;
 import org.checkerframework.checker.signature.qual.DotSeparatedIdentifiers;
+import randoop.Globals;
 import randoop.main.RandoopBug;
 
 /**
@@ -70,7 +73,17 @@ public class SequenceCompiler {
   public boolean isCompilable(
       final String packageName, final String classname, final String javaSource) {
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
-    return compile(packageName, classname, javaSource, diagnostics);
+    boolean result = compile(packageName, classname, javaSource, diagnostics);
+    if (!result && javaSource.contains(".clone(")) {
+      StringJoiner sj = new StringJoiner(Globals.lineSep);
+      sj.add("isCompilable => false");
+      for (Diagnostic<?> d : diagnostics.getDiagnostics()) {
+        sj.add(d.toString());
+      }
+      sj.add(javaSource);
+      System.out.println(sj.toString());
+    }
+    return result;
   }
 
   /**

@@ -455,11 +455,7 @@ public class ForwardGenerator extends AbstractGenerator {
     }
 
     ExecutableSequence eSeq = new ExecutableSequence(newSequence);
-    boolean hasClone = false;
-    for (Statement s : eSeq.sequence.statements.toJDKList()) {
-      if (s.getOperation().toParsableString().equals("java7.util7.TreeSet.clone()"))
-        hasClone = true;
-    }
+    boolean hasClone = newSequence.hasClone();
 
     // Discard if sequence is not compilable.
     if (hasClone && !outputTest.test(eSeq)) {

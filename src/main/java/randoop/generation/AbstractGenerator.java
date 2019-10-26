@@ -15,7 +15,6 @@ import randoop.main.GenInputsAbstract;
 import randoop.operation.TypedOperation;
 import randoop.sequence.ExecutableSequence;
 import randoop.sequence.Sequence;
-import randoop.sequence.Statement;
 import randoop.test.TestCheckGenerator;
 import randoop.util.Log;
 import randoop.util.ProgressDisplay;
@@ -330,11 +329,7 @@ public abstract class AbstractGenerator {
       }
 
       num_sequences_generated++;
-      boolean hasClone = false;
-      for (Statement s : eSeq.sequence.statements.toJDKList()) {
-        if (s.getOperation().toParsableString().equals("java7.util7.TreeSet.clone()"))
-          hasClone = true;
-      }
+      boolean hasClone = eSeq.sequence.hasClone();
 
       if (outputTest.test(eSeq)) {
         // Classify the sequence

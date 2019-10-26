@@ -1237,4 +1237,18 @@ public final class Sequence {
       return this.index;
     }
   }
+
+  /**
+   * Returns true if this sequence contains a call to treeSet.clone().
+   *
+   * @return true if this sequence contains a call to treeSet.clone()
+   */
+  public boolean hasClone() {
+    for (Statement s : statements.toJDKList()) {
+      if (s.getOperation().toParsableString().equals("java7.util7.TreeSet.clone()")) {
+        return true;
+      }
+    }
+    return false;
+  }
 }

@@ -699,4 +699,13 @@ public class ExecutableSequence {
   public int size() {
     return sequence.size();
   }
+
+  /**
+   * Returns true if this sequence contains a call to treeSet.clone().
+   *
+   * @return true if this sequence contains a call to treeSet.clone()
+   */
+  public boolean hasClone() {
+    return sequence.hasClone();
+  }
 }
