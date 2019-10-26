@@ -28,6 +28,12 @@ import randoop.main.RandoopBug;
  */
 public class SequenceCompiler {
 
+  /**
+   * If non-null, do verbose output for compilation failures where the Java source code contains the
+   * string.
+   */
+  private static final String debugCompilationFailure = ".clone(";
+
   /** The options to the compiler. */
   private final List<String> compilerOptions;
 
@@ -74,7 +80,9 @@ public class SequenceCompiler {
       final String packageName, final String classname, final String javaSource) {
     DiagnosticCollector<JavaFileObject> diagnostics = new DiagnosticCollector<>();
     boolean result = compile(packageName, classname, javaSource, diagnostics);
-    if (!result && javaSource.contains(".clone(")) {
+    if (!result
+        && debugCompilationFailure != null
+        && javaSource.contains(debugCompilationFailure)) {
       StringJoiner sj = new StringJoiner(Globals.lineSep);
       sj.add("isCompilable => false");
       for (Diagnostic<?> d : diagnostics.getDiagnostics()) {
