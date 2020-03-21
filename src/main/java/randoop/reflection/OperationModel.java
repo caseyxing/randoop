@@ -16,7 +16,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
@@ -50,6 +49,7 @@ import randoop.main.RandoopUsageError;
 import randoop.operation.OperationParseException;
 import randoop.operation.TypedClassOperation;
 import randoop.operation.TypedOperation;
+import randoop.reflection.OperationExtractor.OperationsAndOmitted;
 import randoop.sequence.Sequence;
 import randoop.test.ContractSet;
 import randoop.types.ClassOrInterfaceType;
@@ -74,25 +74,25 @@ import randoop.util.MultiMap;
 public class OperationModel {
 
   /** The set of class declaration types for this model. */
-  private Set<ClassOrInterfaceType> classTypes;
+  private Set<ClassOrInterfaceType> classTypes = new TreeSet<>();
 
   /** The set of input types for this model. */
-  private Set<Type> inputTypes;
+  private Set<Type> inputTypes = new TreeSet<>();
 
   /** The set of classes used as goals in the covered-class test filter. */
-  private final LinkedHashSet<Class<?>> coveredClassesGoal;
+  private final LinkedHashSet<Class<?>> coveredClassesGoal = new LinkedHashSet<>();
 
   /** Map for singleton sequences of literals extracted from classes. */
-  private MultiMap<ClassOrInterfaceType, Sequence> classLiteralMap;
+  private MultiMap<ClassOrInterfaceType, Sequence> classLiteralMap = new MultiMap<>();
 
   /** Set of singleton sequences for values from TestValue annotated fields. */
-  private Set<Sequence> annotatedTestValues;
+  private Set<Sequence> annotatedTestValues = new LinkedHashSet<>();
 
   /** Set of object contracts used to generate tests. */
   private ContractSet contracts;
 
   /** Set of concrete operations extracted from classes. */
-  private final Set<TypedOperation> operations;
+  private final OperationsAndOmitted operations = new OperationsAndOmitted();
 
   /** For debugging only. */
   private List<Pattern> omitMethods;
@@ -102,11 +102,6 @@ public class OperationModel {
 
   /** Create an empty model of test context. */
   private OperationModel() {
-    // TreeSet here for deterministic coverage in the systemTest runNaiveCollectionsTest()
-    classTypes = new TreeSet<>();
-    inputTypes = new TreeSet<>();
-    classLiteralMap = new MultiMap<>();
-    annotatedTestValues = new LinkedHashSet<>();
     contracts = new ContractSet();
     contracts.add(EqualsReflexive.getInstance()); // arity=1
     contracts.add(EqualsSymmetric.getInstance()); // arity=2
@@ -120,9 +115,6 @@ public class OperationModel {
     contracts.add(CompareToSubs.getInstance()); // arity=3
     contracts.add(CompareToTransitive.getInstance()); // arity=3
     contracts.add(SizeToArrayLength.getInstance()); // arity=1
-
-    coveredClassesGoal = new LinkedHashSet<>();
-    operations = new TreeSet<>();
   }
 
   /**
@@ -435,7 +427,16 @@ public class OperationModel {
    * @return the operations of this model
    */
   public List<TypedOperation> getOperations() {
-    return new ArrayList<>(operations);
+    return new ArrayList<>(operations.getOperations());
+  }
+
+  /**
+   * Return the omitted operations of this model as a list.
+   *
+   * @return the omitted operations of this model
+   */
+  public List<TypedOperation> getOmittedOperations() {
+    return new ArrayList<>(operations.getOmittedOperations());
   }
 
   /**
@@ -489,7 +490,7 @@ public class OperationModel {
   public void logOperations(Writer out) {
     try {
       out.write("Operations: " + Globals.lineSep);
-      for (TypedOperation t : operations) {
+      for (TypedOperation t : operations.getOperations()) {
         out.write("  " + t.toString());
         out.write(Globals.lineSep);
         out.flush();
@@ -668,27 +669,14 @@ public class OperationModel {
       VisibilityPredicate visibility,
       ReflectionPredicate reflectionPredicate,
       SpecificationCollection operationSpecifications) {
-    ReflectionManager mgr = new ReflectionManager(visibility);
-    Iterator<ClassOrInterfaceType> itor = classTypes.iterator();
-    while (itor.hasNext()) {
-      ClassOrInterfaceType classType = itor.next();
-      try {
-        OperationExtractor extractor =
-            new OperationExtractor(
-                classType,
-                reflectionPredicate,
-                omitMethodsPredicate,
-                visibility,
-                operationSpecifications);
-        mgr.apply(extractor, classType.getRuntimeClass());
-        operations.addAll(extractor.getOperations());
-      } catch (Throwable e) {
-        System.out.printf(
-            "Removing %s from the classes under test due to problem extracting operations:%n%s%n",
-            classType, UtilPlume.stackTraceToString(e));
-        itor.remove();
-      }
-    }
+    OperationsAndOmitted newOperations =
+        OperationExtractor.operationsAndOmitted(
+            classTypes,
+            reflectionPredicate,
+            omitMethodsPredicate,
+            visibility,
+            operationSpecifications);
+    operations.union(newOperations);
   }
 
   /**
@@ -714,8 +702,10 @@ public class OperationModel {
           try {
             TypedClassOperation operation =
                 signatureToOperation(sig, visibility, reflectionPredicate);
-            if (!omitMethodsPredicate.shouldOmit(operation)) {
-              operations.add(operation);
+            if (omitMethodsPredicate.shouldOmit(operation)) {
+              operations.addOmittedOperation(operation);
+            } else {
+              operations.addOperation(operation);
             }
           } catch (FailedPredicateException e) {
             System.out.printf("Ignoring %s that failed predicate: %s%n", sig, e.getMessage());
@@ -756,7 +746,7 @@ public class OperationModel {
     }
   }
 
-  /** Creates and adds the Object class default constructor call to the concrete operations. */
+  /** Adds the Object class constructor to the operations. */
   private void addObjectConstructor() {
     Constructor<?> objectConstructor;
     try {
@@ -766,6 +756,6 @@ public class OperationModel {
     }
     TypedClassOperation operation = TypedOperation.forConstructor(objectConstructor);
     classTypes.add(operation.getDeclaringType());
-    operations.add(operation);
+    operations.addOperation(operation);
   }
 }
